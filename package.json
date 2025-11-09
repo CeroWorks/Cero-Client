@@ -1,0 +1,27 @@
+{
+  "name": "cero-client",
+  "version": "1.0.0",
+  "description": "A Custom Minecraft Launcher for everyone",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CeroWorks/Cero-Client.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/CeroWorks/Cero-Client/issues"
+  },
+  "homepage": "https://github.com/CeroWorks/Cero-Client#readme",
+  "devDependencies": {
+    "electron": "^39.1.1"
+  },
+  "dependencies": {
+    "electron-builder": "^26.0.12"
+  }
+}
