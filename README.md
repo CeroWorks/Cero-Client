@@ -1,6 +1,6 @@
 
 # Cero-Client
-A **custom Minecraft launcher** for everyone — built with [Electron.js](https://www.electronjs.org/).
+A **custom Minecraft launcher** for everyone — built with [Electron.js](https://www.electronjs.org/). (5%)
 
 ---
 
