@@ -1,0 +1,44 @@
+body {
+    font-family: Arial;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    height:100vh;
+    background:#1B2636;
+    color:#fff;
+    margin:0;
+}
+
+#status {
+    margin-bottom:10px;
+}
+
+#progress-container {
+    width:80%;
+    background:#333;
+    border-radius:5px; 
+    overflow:hidden;
+    height:25px;
+    margin-bottom:10px;
+}
+
+#progress {
+    width:0%;
+    height:100%;
+    background:#4caf50;
+    transition:width 0.2s;
+}
+
+button {
+    padding:10px 20px;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+    background:#4caf50;
+    color:#fff;
+}
+
+button:hover {
+    background:#45a049;
+}

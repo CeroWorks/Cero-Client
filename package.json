@@ -5,6 +5,8 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
+    "build": "python3 build.py",
+    "buildUpdater": "python3 src/updater/build.py",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -20,9 +22,10 @@
   },
   "homepage": "https://github.com/CeroWorks/Cero-Client#readme",
   "devDependencies": {
+    "electron-builder": "^26.0.12",
     "electron": "^39.1.1"
   },
   "dependencies": {
-    "electron-builder": "^26.0.12"
+    "vue-router": "^4.6.3"
   }
 }
