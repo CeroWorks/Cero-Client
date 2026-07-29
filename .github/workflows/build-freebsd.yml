@@ -21,11 +21,8 @@ jobs:
         usesh: true
         prepare: |
           env IGNORE_OSVERSION=yes pkg update -f
-          echo "test paquet WebKit"
-          pkg search -q webkit
-          echo "test dépendances"
-          env IGNORE_OSVERSION=yes pkg install -y python3 pkgconf webkit2-gtk3 curl git openjdk17
-
+          env IGNORE_OSVERSION=yes pkg install -y python3 pkgconf webkit2-gtk_41 curl git openjdk17
+          
         run: |
           export PATH=$PATH:/usr/local/bin
           
