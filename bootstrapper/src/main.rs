@@ -1,61 +1,23 @@
 //#![cfg_attr(all(not(debug_assertions), target_os = "windows"), windows_subsystem = "windows")]
 
 use sha2::{Digest, Sha256};
-use ed25519_dalek::{Signature, Verifier, VerifyingKey};
 use std::fs;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::Instant;
 
-const BASE_URL: &str = "https://cerostudio.fr/ceroclient/cdn/client";
-const ASSETS_URL: &str = "https://cerostudio.fr/ceroclient/cdn/assets";
-const BOOTSTRAPPER_URL: &str = "https://cerostudio.fr/ceroclient/cdn/bootstrapper";
+const GITHUB_RELEASES_BASE: &str =
+    "https://github.com/CeroWorks/Cero-Client/releases/latest/download";
 
-const RELEASE_PUBLIC_KEY_HEX: &str =
-    "dda851eaddc6efc42f08536a7204359dfa1eb4d6273dcc90b86bde23398c66d1";
+#[cfg(target_arch = "x86_64")]
+const ARCH_SUFFIX: &str = "x86_64";
 
-fn hex_decode(s: &str) -> Option<Vec<u8>> {
-    let s = s.trim();
-    if s.len() % 2 != 0 {
-        return None;
-    }
-    let mut out = Vec::with_capacity(s.len() / 2);
-    let bytes = s.as_bytes();
-    let mut i = 0;
-    while i < bytes.len() {
-        let hi = (bytes[i] as char).to_digit(16)?;
-        let lo = (bytes[i + 1] as char).to_digit(16)?;
-        out.push(((hi << 4) | lo) as u8);
-        i += 2;
-    }
-    Some(out)
-}
+#[cfg(target_arch = "aarch64")]
+const ARCH_SUFFIX: &str = "arm64";
 
-fn load_release_public_key() -> Option<VerifyingKey> {
-    let raw = hex_decode(RELEASE_PUBLIC_KEY_HEX)?;
-    let arr: [u8; 32] = raw.try_into().ok()?;
-    VerifyingKey::from_bytes(&arr).ok()
-}
-
-fn verify_file_signature(path: &Path, sig_hex: &str) -> Result<(), String> {
-    let vk = load_release_public_key()
-        .ok_or("clé publique de release absente ou invalide (placeholder non remplacé)")?;
-
-    let sig_bytes = hex_decode(sig_hex).ok_or("signature : encodage hex invalide")?;
-    let sig_arr: [u8; 64] = sig_bytes
-        .try_into()
-        .map_err(|_| "signature : longueur invalide (attendu 64 octets)".to_string())?;
-    let signature = Signature::from_bytes(&sig_arr);
-
-    let mut file = fs::File::open(path).map_err(|e| format!("lecture pour vérif sig: {e}"))?;
-    let mut data = Vec::new();
-    file.read_to_end(&mut data)
-        .map_err(|e| format!("lecture pour vérif sig: {e}"))?;
-
-    vk.verify(&data, &signature)
-        .map_err(|_| "signature Ed25519 invalide".to_string())
-}
+#[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64")))]
+compile_error!("Architecture non supportée");
 
 #[cfg(target_os = "windows")]
 const LAUNCHER_NAME: &str = "CeroClient.exe";
@@ -64,16 +26,10 @@ const LAUNCHER_NAME: &str = "CeroClient.exe";
 const LAUNCHER_NAME: &str = "CeroClient";
 
 #[cfg(target_os = "windows")]
-const BOOTSTRAPPER_NAME: &str = "CeroClient-bootstrapper-windows-x86_64.exe";
+const BOOTSTRAPPER_NAME: &str = "ceroclient-bootstrapper.exe";
 
-#[cfg(target_os = "linux")]
-const BOOTSTRAPPER_NAME: &str = "CeroClient-bootstrapper-linux-x86_64";
-
-#[cfg(target_os = "freebsd")]
-const BOOTSTRAPPER_NAME: &str = "CeroClient-bootstrapper-freebsd-x86_64";
-
-#[cfg(target_os = "macos")]
-const BOOTSTRAPPER_NAME: &str = "CeroClient-bootstrapper-macos-x86_64";
+#[cfg(not(target_os = "windows"))]
+const BOOTSTRAPPER_NAME: &str = "ceroclient-bootstrapper";
 
 #[cfg(target_os = "windows")]
 const OS_SUFFIX: &str = "windows";
@@ -94,6 +50,18 @@ const OS_SUFFIX: &str = "macos";
     target_os = "macos"
 )))]
 compile_error!("OS non supporté");
+
+fn target_triplet() -> String {
+    format!("{OS_SUFFIX}-{ARCH_SUFFIX}")
+}
+
+fn client_zip_name() -> String {
+    format!("CeroClient-{}.zip", target_triplet())
+}
+
+fn bootstrapper_zip_name() -> String {
+    format!("CeroClient-bootstrapper-{}.zip", target_triplet())
+}
 
 struct Log {
     colors: bool,
@@ -329,53 +297,79 @@ fn sha256_file(path: &Path) -> Option<String> {
     Some(format!("{:x}", hasher.finalize()))
 }
 
-fn ensure_file(
+fn lookup_checksum(checksums_txt: &str, filename: &str) -> Option<String> {
+    checksums_txt.lines().find_map(|line| {
+        let mut parts = line.split_whitespace();
+        let hash = parts.next()?;
+        let name = parts.next()?.trim_start_matches('*');
+        if name == filename {
+            Some(hash.to_lowercase())
+        } else {
+            None
+        }
+    })
+}
+
+fn extract_zip(zip_path: &Path, dest: &Path, log: &Log) -> Result<(), String> {
+    let file = fs::File::open(zip_path).map_err(|e| format!("open zip: {e}"))?;
+    let mut archive = zip::ZipArchive::new(file).map_err(|e| format!("zip: {e}"))?;
+
+    for i in 0..archive.len() {
+        let mut entry = archive.by_index(i).map_err(|e| format!("zip entry: {e}"))?;
+        let outpath = dest.join(entry.name());
+        if entry.is_dir() {
+            fs::create_dir_all(&outpath).map_err(|e| format!("mkdir {outpath:?}: {e}"))?;
+            continue;
+        }
+        if let Some(p) = outpath.parent() {
+            fs::create_dir_all(p).map_err(|e| format!("mkdir {p:?}: {e}"))?;
+        }
+        let mut outfile =
+            fs::File::create(&outpath).map_err(|e| format!("create {outpath:?}: {e}"))?;
+        std::io::copy(&mut entry, &mut outfile).map_err(|e| format!("extract {outpath:?}: {e}"))?;
+        log.note(&format!("→ {}", entry.name()));
+    }
+    Ok(())
+}
+
+fn ensure_zip_asset(
     agent: &ureq::Agent,
-    base_url: &str,
-    remote_name: &str,
-    local_name: &str,
+    zip_name: &str,
+    dest_dir: &Path,
     bin: &Path,
     log: &Log,
-    require_signature: bool,
 ) -> Result<bool, String> {
-    let local_file = bin.join(local_name);
-    let remote_hash =
-        http_get_text(agent, &format!("{base_url}/{remote_name}.checksum"))?;
+    let checksums = http_get_text(agent, &format!("{GITHUB_RELEASES_BASE}/checksums.txt"))
+        .map_err(|e| format!("checksums.txt indisponible : {e}"))?;
+    let remote_hash = lookup_checksum(&checksums, zip_name)
+        .ok_or_else(|| format!("aucune entrée checksums.txt pour {zip_name}"))?;
 
-    let local_hash = if local_file.exists() {
-        sha256_file(&local_file).unwrap_or_default()
+    let local_zip = bin.join(zip_name);
+    let local_hash = if local_zip.exists() {
+        sha256_file(&local_zip).unwrap_or_default()
     } else {
         String::new()
     };
 
-    if !local_hash.is_empty() && local_hash == remote_hash {
-        log.ok(&format!("{} déjà à jour", local_name));
+    if !local_hash.is_empty() && local_hash.eq_ignore_ascii_case(&remote_hash) {
+        log.ok(&format!("{} déjà à jour", zip_name));
         return Ok(false);
     }
 
-    log.info(&format!("↓ {}", remote_name));
-    http_download(agent, &format!("{base_url}/{remote_name}"), &local_file, log)?;
+    log.info(&format!("↓ {}", zip_name));
+    http_download(agent, &format!("{GITHUB_RELEASES_BASE}/{zip_name}"), &local_zip, log)?;
 
-    let new_hash = sha256_file(&local_file).ok_or("hash post-DL échoué")?;
-    if new_hash != remote_hash {
-        let _ = fs::remove_file(&local_file);
+    let new_hash = sha256_file(&local_zip).ok_or("hash post-DL échoué")?;
+    if !new_hash.eq_ignore_ascii_case(&remote_hash) {
+        let _ = fs::remove_file(&local_zip);
         return Err(format!(
-            "Checksum invalide pour {local_name}\n    attendu : {remote_hash}\n    obtenu  : {new_hash}"
+            "Checksum invalide pour {zip_name}\n    attendu : {remote_hash}\n    obtenu  : {new_hash}"
         ));
     }
 
-    if require_signature {
-        let sig_hex = http_get_text(agent, &format!("{base_url}/{remote_name}.sig"))
-            .map_err(|e| format!("signature distante indisponible pour {remote_name}: {e}"))?;
-        if let Err(e) = verify_file_signature(&local_file, &sig_hex) {
-            let _ = fs::remove_file(&local_file);
-            return Err(format!("Vérification de signature échouée pour {local_name} : {e}"));
-        }
-        log.ok(&format!("Signature Ed25519 vérifiée pour {}", local_name));
-    }
-
-    fs::write(bin.join(format!("{local_name}.checksum")), &remote_hash).ok();
-    log.ok(&format!("{} mis à jour", local_name));
+    fs::create_dir_all(dest_dir).map_err(|e| format!("mkdir {dest_dir:?}: {e}"))?;
+    extract_zip(&local_zip, dest_dir, log)?;
+    log.ok(&format!("{} mis à jour et extrait", zip_name));
     Ok(true)
 }
 
@@ -828,58 +822,66 @@ fn self_update(agent: &ureq::Agent, log: &Log) -> Result<bool, String> {
         .ok_or("dossier de l'exe introuvable")?
         .to_path_buf();
 
-    let checksum_url = format!("{}/{}.checksum", BOOTSTRAPPER_URL, BOOTSTRAPPER_NAME);
-    let exe_url = format!("{}/{}", BOOTSTRAPPER_URL, BOOTSTRAPPER_NAME);
+    let zip_name = bootstrapper_zip_name();
 
-    let remote_hash = match http_get_text(agent, &checksum_url) {
-        Ok(s) => s.trim().to_lowercase(),
+    let checksums = match http_get_text(agent, &format!("{GITHUB_RELEASES_BASE}/checksums.txt")) {
+        Ok(s) => s,
         Err(e) => {
-            log.warn(&format!("checksum distant indisponible : {e}"));
+            log.warn(&format!("checksums.txt indisponible : {e}"));
+            return Ok(false);
+        }
+    };
+    let remote_hash = match lookup_checksum(&checksums, &zip_name) {
+        Some(h) => h,
+        None => {
+            log.warn(&format!("aucune entrée checksums.txt pour {zip_name}"));
             return Ok(false);
         }
     };
 
-    let local_hash = sha256_file(&current_exe).unwrap_or_default().to_lowercase();
-    if local_hash == remote_hash {
+    let stamp_file = dir.join(format!("{zip_name}.sha256"));
+    let previous_zip_hash = fs::read_to_string(&stamp_file).unwrap_or_default().trim().to_lowercase();
+    if previous_zip_hash == remote_hash.to_lowercase() {
         log.ok("Bootstrapper à jour");
         return Ok(false);
     }
 
     log.info("Nouvelle version détectée, téléchargement...");
 
-    let new_exe = dir.join(if cfg!(windows) { "bootstrapper_new.exe" } else { "bootstrapper_new" });
-    let _ = fs::remove_file(&new_exe);
-    http_download(agent, &exe_url, &new_exe, log)?;
+    let new_zip = dir.join(&zip_name);
+    let _ = fs::remove_file(&new_zip);
+    http_download(agent, &format!("{GITHUB_RELEASES_BASE}/{zip_name}"), &new_zip, log)?;
 
-    let dl_hash = sha256_file(&new_exe)
+    let dl_hash = sha256_file(&new_zip)
         .ok_or("hash post-DL échoué")?
         .to_lowercase();
-    if dl_hash != remote_hash {
-        let _ = fs::remove_file(&new_exe);
+    if dl_hash != remote_hash.to_lowercase() {
+        let _ = fs::remove_file(&new_zip);
         return Err(format!("checksum mismatch (attendu {remote_hash}, obtenu {dl_hash})"));
     }
 
-    let sig_url = format!("{}/{}.sig", BOOTSTRAPPER_URL, BOOTSTRAPPER_NAME);
-    let sig_hex = http_get_text(agent, &sig_url)
-        .map_err(|e| {
-            let _ = fs::remove_file(&new_exe);
-            format!("signature distante indisponible : {e}")
-        })?;
-    if let Err(e) = verify_file_signature(&new_exe, &sig_hex) {
-        let _ = fs::remove_file(&new_exe);
-        return Err(format!("Vérification de signature du bootstrapper échouée : {e}"));
+    let extract_dir = dir.join("bootstrapper_update");
+    let _ = fs::remove_dir_all(&extract_dir);
+    fs::create_dir_all(&extract_dir).map_err(|e| format!("mkdir {extract_dir:?}: {e}"))?;
+    extract_zip(&new_zip, &extract_dir, log)?;
+    let _ = fs::remove_file(&new_zip);
+
+    let extracted_exe = extract_dir.join(BOOTSTRAPPER_NAME);
+    if !extracted_exe.exists() {
+        return Err(format!("{BOOTSTRAPPER_NAME} introuvable dans {zip_name}"));
     }
-    log.ok("Signature Ed25519 du bootstrapper vérifiée");
 
     let old_exe = dir.join(if cfg!(windows) { "bootstrapper_old.exe" } else { "bootstrapper_old" });
     let _ = fs::remove_file(&old_exe);
     fs::rename(&current_exe, &old_exe)
         .map_err(|e| format!("rename current→old: {e}"))?;
 
-    if let Err(e) = fs::rename(&new_exe, &current_exe) {
+    if let Err(e) = fs::rename(&extracted_exe, &current_exe) {
         let _ = fs::rename(&old_exe, &current_exe);
         return Err(format!("échec du remplacement : {e}"));
     }
+    let _ = fs::remove_dir_all(&extract_dir);
+    fs::write(&stamp_file, &remote_hash).ok();
 
     make_executable(&current_exe);
 
@@ -908,13 +910,9 @@ fn main() {
 
     let bin = bin_dir();
 
-    log.section("Mise à jour du launcher");
-    let launcher_remote = format!(
-        "CeroClient-{OS_SUFFIX}-x86_64{}",
-        if cfg!(windows) { ".exe" } else { "" }
-    );
-    if let Err(e) = ensure_file(&agent, BASE_URL, &launcher_remote, LAUNCHER_NAME, &bin, &log, true) {
-        log.err(&format!("Launcher : {e}"));
+    log.section("Mise à jour du launcher et des assets");
+    if let Err(e) = ensure_zip_asset(&agent, &client_zip_name(), &bin, &bin, &log) {
+        log.err(&format!("Launcher/assets : {e}"));
         std::process::exit(1);
     }
     make_executable(&bin.join(LAUNCHER_NAME));
@@ -922,67 +920,10 @@ fn main() {
     #[cfg(windows)]
     {
         log.section("Mise à jour des DLLs");
-        let zip_name = "CeroClient_windows_dll.zip";
-        match ensure_file(&agent, BASE_URL, zip_name, zip_name, &bin, &log, true) {
-            Ok(updated) => {
-                let needs_extract = updated || {
-                    let zip_path = bin.join(zip_name);
-                    if let Ok(file) = fs::File::open(&zip_path) {
-                        if let Ok(mut archive) = zip::ZipArchive::new(file) {
-                            (0..archive.len()).any(|i| {
-                                archive.by_index(i)
-                                    .map(|e| !bin.join(e.name()).exists())
-                                    .unwrap_or(true)
-                            })
-                        } else { true }
-                    } else { false }
-                };
-
-                if needs_extract {
-                    log.info("Extraction des DLLs...");
-                    let zip_path = bin.join(zip_name);
-                    let file = match fs::File::open(&zip_path) {
-                        Ok(f) => f,
-                        Err(e) => { log.err(&format!("open zip: {e}")); std::process::exit(1); }
-                    };
-                    let mut archive = match zip::ZipArchive::new(file) {
-                        Ok(a) => a,
-                        Err(e) => { log.err(&format!("zip: {e}")); std::process::exit(1); }
-                    };
-                    for i in 0..archive.len() {
-                        let mut entry = match archive.by_index(i) {
-                            Ok(e) => e,
-                            Err(e) => { log.err(&format!("zip entry: {e}")); std::process::exit(1); }
-                        };
-                        let outpath = bin.join(entry.name());
-                        if entry.is_dir() {
-                            let _ = fs::create_dir_all(&outpath);
-                            continue;
-                        }
-                        if let Some(p) = outpath.parent() { let _ = fs::create_dir_all(p); }
-                        let mut outfile = match fs::File::create(&outpath) {
-                            Ok(f) => f,
-                            Err(e) => { log.err(&format!("create {outpath:?}: {e}")); std::process::exit(1); }
-                        };
-                        if let Err(e) = std::io::copy(&mut entry, &mut outfile) {
-                            log.err(&format!("extract {outpath:?}: {e}"));
-                            std::process::exit(1);
-                        }
-                        log.note(&format!("→ {}", entry.name()));
-                    }
-                    log.ok("DLLs extraites");
-                } else {
-                    log.ok("DLLs déjà présentes");
-                }
-            }
-            Err(e) => { log.err(&format!("DLLs : {e}")); std::process::exit(1); }
+        if let Err(e) = ensure_zip_asset(&agent, "CeroClient_windows_dll.zip", &bin, &bin, &log) {
+            log.err(&format!("DLLs : {e}"));
+            std::process::exit(1);
         }
-    }
-
-    log.section("Mise à jour des assets");
-    if let Err(e) = ensure_file(&agent, ASSETS_URL, "assets.dat", "assets.dat", &bin, &log, false) {
-        log.err(&format!("Assets : {e}"));
-        std::process::exit(1);
     }
 
     let launcher_path = bin.join(LAUNCHER_NAME);

@@ -1,0 +1,266 @@
+name: CeroClient Build & Release
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config libwebkit2gtk-4.1-dev libcurl4-openssl-dev git
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Run CeroClient Build Pipeline
+        run: python3 build.py
+
+      - name: Stage release files
+        run: |
+          mkdir -p stage
+          cp bin/linux/client/CeroClient stage/
+          cp bin/linux/bootstrapper/ceroclient-bootstrapper stage/
+          cp bin/assets/assets.dat stage/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CeroClient-linux-x86_64
+          path: stage/*
+
+  build-linux-arm64:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config libwebkit2gtk-4.1-dev libcurl4-openssl-dev git
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Run CeroClient Build Pipeline
+        run: python3 build.py
+
+      - name: Stage release files
+        run: |
+          mkdir -p stage
+          cp bin/linux/client/CeroClient stage/
+          cp bin/linux/bootstrapper/ceroclient-bootstrapper stage/
+          cp bin/assets/assets.dat stage/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CeroClient-linux-arm64
+          path: stage/*
+
+  build-macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-13
+            arch: x86_64
+          - runner: macos-14
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Homebrew dependencies
+        run: |
+          brew install python@3.12 curl pkg-config git
+          brew link --force python@3.12
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Run CeroClient Build Pipeline
+        run: python3 build.py
+
+      - name: Stage release files
+        run: |
+          mkdir -p stage
+          cp bin/macos/client/CeroClient stage/
+          cp bin/macos/bootstrapper/ceroclient-bootstrapper stage/
+          cp bin/assets/assets.dat stage/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CeroClient-macos-${{ matrix.arch }}
+          path: stage/*
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          path-type: inherit
+          install: >-
+            git
+            make
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-pkg-config
+            mingw-w64-x86_64-curl
+            mingw-w64-x86_64-libssh2
+            mingw-w64-x86_64-nghttp2
+            mingw-w64-x86_64-libpsl
+            mingw-w64-x86_64-brotli
+            mingw-w64-x86_64-zstd
+            mingw-w64-x86_64-openssl
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Download WebView2 SDK
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2" -OutFile webview2.zip
+          Expand-Archive -Path webview2.zip -DestinationPath webview2_sdk
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Run CeroClient Build Pipeline
+        shell: msys2 {0}
+        env:
+          PYTHONUTF8: "1"
+          WEBVIEW2_INCLUDE: ${{ github.workspace }}\webview2_sdk\build\native\include
+          WEBVIEW2_LIB: ${{ github.workspace }}\webview2_sdk\build\native\x64
+        run: python build.py
+
+      - name: Stage release files
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path stage | Out-Null
+          Copy-Item bin\windows\client\CeroClient.exe stage\
+          Copy-Item bin\windows\bootstrapper\ceroclient-bootstrapper.exe stage\
+          Copy-Item bin\assets\assets.dat stage\
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CeroClient-windows-x86_64
+          path: stage/*
+
+  build-freebsd:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run build inside FreeBSD VM
+        uses: vmactions/freebsd-vm@v1
+        with:
+          release: 14.2
+          usesh: true
+          prepare: |
+            env IGNORE_OSVERSION=yes pkg update -f
+            env IGNORE_OSVERSION=yes pkg install -y python3 pkgconf webkit2-gtk_41 curl git openjdk17 gmake bzip2 rust
+            printf "Name: bzip2\nDescription: bzip2\nVersion: 1.0.8\nLibs: -lbz2\n" > /usr/local/libdata/pkgconfig/bzip2.pc
+          run: |
+            export PATH=$PATH:/usr/local/bin
+            export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/libdata/pkgconfig
+            python3 build.py
+            mkdir -p stage
+            cp bin/freebsd/client/CeroClient stage/
+            cp bin/freebsd/bootstrapper/ceroclient-bootstrapper stage/
+            cp bin/assets/assets.dat stage/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CeroClient-freebsd-x86_64
+          path: stage/*
+
+  release:
+    needs:
+      - build-linux
+      - build-linux-arm64
+      - build-macos
+      - build-windows
+      - build-freebsd
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Compute version tag
+        id: version
+        run: |
+          echo "tag=$(date -u +%Y.%m.%d)-$(echo ${GITHUB_SHA} | cut -c1-7)" >> "$GITHUB_OUTPUT"
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Package zips
+        run: |
+          mkdir -p release
+          for dir in artifacts/*/; do
+            name=$(basename "$dir")
+            target=${name#CeroClient-}
+
+            mkdir -p "pkg/$target/client"
+            mkdir -p "pkg/$target/bootstrapper"
+
+            find "$dir" -maxdepth 1 -type f ! -iname "ceroclient-bootstrapper*" -exec cp {} "pkg/$target/client/" \;
+            (cd "pkg/$target/client" && zip -r "../../../release/CeroClient-${target}.zip" .)
+
+            find "$dir" -maxdepth 1 -type f -iname "ceroclient-bootstrapper*" -exec cp {} "pkg/$target/bootstrapper/" \;
+            (cd "pkg/$target/bootstrapper" && zip -r "../../../release/CeroClient-bootstrapper-${target}.zip" .)
+          done
+          ls -la release/
+
+      - name: Generate checksums.txt
+        run: |
+          cd release
+          sha256sum *.zip > checksums.txt
+          cat checksums.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Build ${{ steps.version.outputs.tag }}
+          make_latest: true
+          files: |
+            release/*.zip
+            release/checksums.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

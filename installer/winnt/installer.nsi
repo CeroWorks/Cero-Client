@@ -1,10 +1,10 @@
 !define APP_NAME        "CeroClient"
 !define APP_VERSION     "3.2.17F"
 !define APP_PUBLISHER   "CeroClient"
-!define APP_EXE         "CeroClient-bootstrapper-windows-x86_64.exe"
+!define APP_EXE         "ceroclient-bootstrapper.exe"
 !define APP_ICON        "assets\favicon.ico"
 !define INSTALL_DIR     "$LOCALAPPDATA\CeroClient"
-!define CDN_URL         "https://cerostudio.fr/ceroclient/cdn/bootstrapper/${APP_EXE}"
+!define CDN_URL         "https://github.com/CeroWorks/Cero-Client/releases/latest/download/CeroClient-bootstrapper-windows-x86_64.zip"
 
 !include "MUI2.nsh"
 
@@ -46,14 +46,29 @@ Section "Install"
     File "/oname=icon.ico" "${APP_ICON}"
 
     DetailPrint "Téléchargement du bootstrapper..."
-    nsExec::ExecToStack 'curl.exe --ssl-no-revoke --silent --fail --show-error -L -o "$INSTDIR\${APP_EXE}" "${CDN_URL}"'
-    Pop $0  ; Code de retour (0 = succès)
-    Pop $1  ; Sortie standard / Erreur
-    
+    nsExec::ExecToStack 'curl.exe --ssl-no-revoke --silent --fail --show-error -L -o "$INSTDIR\bootstrapper.zip" "${CDN_URL}"'
+    Pop $0
+    Pop $1
+
     StrCmp $0 "0" download_ok
         MessageBox MB_ICONSTOP "Échec du téléchargement du bootstrapper :$\n$1"
         Abort
     download_ok:
+
+    DetailPrint "Extraction du bootstrapper..."
+    ZipDLL::extractall "$INSTDIR\bootstrapper.zip" "$INSTDIR"
+    Pop $0
+    StrCmp $0 "success" extract_ok
+        MessageBox MB_ICONSTOP "Échec de l'extraction du bootstrapper :$\n$0"
+        Abort
+    extract_ok:
+
+    Delete "$INSTDIR\bootstrapper.zip"
+
+    IfFileExists "$INSTDIR\${APP_EXE}" exe_present
+        MessageBox MB_ICONSTOP "${APP_EXE} introuvable après extraction."
+        Abort
+    exe_present:
 
     CreateShortCut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\${APP_EXE}" "" "$INSTDIR\icon.ico"
     CreateDirectory "$SMPROGRAMS\${APP_NAME}"
