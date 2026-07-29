@@ -92,7 +92,7 @@ def run():
     else:
         warn_("JAVA_HOME not found. Gradle might fail if not in system PATH.")
 
-    result = subprocess.run([gradlew_path, "assemble", "--no-daemon"], cwd=agent_dir, env=env)
+    result = subprocess.run([gradlew_path, "build", "--no-daemon"], cwd=agent_dir, env=env)
     
     if result.returncode != 0:
         fail_("Agent build failed")
