@@ -15,6 +15,10 @@
   #ifndef _DEFAULT_SOURCE
     #define _DEFAULT_SOURCE 1
   #endif
+#elif defined(__APPLE__)
+  #ifndef _DARWIN_C_SOURCE
+    #define _DARWIN_C_SOURCE 1
+  #endif
 #endif
 
 #if defined(_WIN32)
@@ -61,6 +65,9 @@
   #define PATH_SEP "/"
   #ifdef __BSD__
     #include <sys/sysctl.h>
+  #endif
+  #ifdef __APPLE__
+    #include <mach-o/dyld.h>
   #endif
 #endif
 
@@ -728,7 +735,6 @@ static void get_exe_path(char *out, size_t sz) {
     else snprintf(out, sz, "./CeroClient");
 
 #elif defined(__APPLE__)
-    #include <mach-o/dyld.h>
     uint32_t size = (uint32_t)sz;
     if (_NSGetExecutablePath(out, &size) != 0)
         snprintf(out, sz, "./CeroClient");
