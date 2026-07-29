@@ -38,7 +38,10 @@ def run():
         if webview2_lib:
             lib_flags += f" -L{webview2_lib}"
         
-        curl_static_deps = "-Wl,--start-group -l:libcurl.a -l:libssh2.a -l:libnghttp2.a -l:libnghttp3.a -l:libngtcp2.a -l:libngtcp2_crypto_libressl.a -l:libssl.a -l:libcrypto.a -l:libz.a -l:libzstd.a -l:libbrotlidec.a -l:libbrotlicommon.a -l:libpsl.a -Wl,--end-group"
+        if os.path.exists("/usr/lib/libngtcp2_crypto_libressl.a") or os.path.exists("C:/msys64/mingw64/lib/libngtcp2_crypto_libressl.a"):
+            curl_static_deps = "-Wl,--start-group -l:libcurl.a -l:libssh2.a -l:libnghttp2.a -l:libnghttp3.a -l:libngtcp2.a -l:libngtcp2_crypto_libressl.a -l:libssl.a -l:libcrypto.a -l:libz.a -l:libzstd.a -l:libbrotlidec.a -l:libbrotlicommon.a -l:libpsl.a -Wl,--end-group"
+        else:
+            curl_static_deps = "-lcurl -lssl -lcrypto -lssh2 -lnghttp2 -lnghttp3 -lz -lzstd -lbrotlidec -lbrotlicommon -lpsl -lws2_32 -lwldap32 -lcrypt32 -lnormaliz -lsecur32 -liphlpapi"
         
         win_libs = f"{lib_flags} -lws2_32 -lwldap32 -lcrypt32 -lnormaliz -lsecur32 -liphlpapi -l:WebView2Loader.dll.lib -lole32 -lshlwapi -lversion -ladvapi32 -luser32 -lshell32 -lgdi32 -static-libgcc -static-libstdc++ -ldwmapi -lwininet -lbcrypt -Wl,--defsym=fstat64=_fstat64 -s -Wl,-subsystem,windows"
         
