@@ -24,6 +24,10 @@
 #include <cstring>
 #include <math.h>
 
+extern "C" {
+    #include "../include/assets_loader.h"
+}
+
 #if defined(__linux__) || defined(__BSD__)
   #include <gtk/gtk.h>
   #include <gio/gio.h>
@@ -39,7 +43,6 @@
 
 #if defined(__linux__) || defined(__BSD__)
 extern "C" {
-    #include "../include/assets_loader.h"
     
 extern int g_really_quit;
 
