@@ -68,9 +68,11 @@ obj/%.o: src/%.cpp
 """
     else:
         env = os.environ.copy()
+        pkg_config_path_export = ""
         if "freebsd" in sys.platform:
             bsd_paths = "/usr/local/lib/pkgconfig:/usr/local/libdata/pkgconfig"
             env["PKG_CONFIG_PATH"] = bsd_paths + ":" + env.get("PKG_CONFIG_PATH", "")
+            pkg_config_path_export = f"export PKG_CONFIG_PATH={bsd_paths} && "
 
         webkit_pkg = "webkit2gtk-4.1"
         if subprocess.run(["pkg-config", "--exists", webkit_pkg], env=env).returncode != 0:
@@ -99,9 +101,9 @@ obj/%.o: src/%.cpp
         TAB = "\t"
         makefile_content = f"""CC       = cc
 CXX      = c++
-CFLAGS   = -O2 -Iinclude -Ithird_party/webview/core/include {tray_define} {tray_cflags} $(shell pkg-config --cflags libcurl)
-CXXFLAGS = -O2 -std=c++17 -Iinclude -Ithird_party/webview/core/include $(shell pkg-config --cflags gtk+-3.0 {webkit_pkg} libcurl)
-LDFLAGS  = $(shell pkg-config --libs gtk+-3.0 {webkit_pkg} libcurl) {tray_ldflags}
+CFLAGS   = -O2 -Iinclude -Ithird_party/webview/core/include {tray_define} {tray_cflags} $(shell {pkg_config_path_export}pkg-config --cflags libcurl)
+CXXFLAGS = -O2 -std=c++17 -Iinclude -Ithird_party/webview/core/include $(shell {pkg_config_path_export}pkg-config --cflags gtk+-3.0 {webkit_pkg} libcurl)
+LDFLAGS  = $(shell {pkg_config_path_export}pkg-config --libs gtk+-3.0 {webkit_pkg} libcurl) {tray_ldflags}
 
 TARGET   = CeroClient
 OBJS     = {objs_str}
@@ -130,7 +132,7 @@ obj/%.o: src/%.cpp
     else:
         make_cmd = "make"
         
-    result = subprocess.run([make_cmd])
+    result = subprocess.run([make_cmd], env=env)
     
     if result.returncode != 0:
         fail_("Build failed")
