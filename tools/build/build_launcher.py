@@ -12,9 +12,6 @@ def run():
     src_dir = Path("src")
     sources = sorted([str(p) for p in src_dir.rglob("*") if p.suffix in [".c", ".cpp", ".mm"]])
 
-    # .mm (Objective-C++) n'a de regle de compilation que sur macOS (voir plus bas) :
-    # sur Linux/BSD/Windows, il faut l'exclure sinon le link echoue en cherchant
-    # un .o qu'aucune regle ne sait produire.
     if sys.platform != "darwin":
         sources = [s for s in sources if not s.endswith(".mm")]
 
