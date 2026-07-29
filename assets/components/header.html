@@ -1,0 +1,216 @@
+<link rel="stylesheet" href="../style/header.css">
+<script src="../js/header.js"></script>
+
+<header class="relative z-50 app-drag flex items-center px-6 pt-5 pb-4 fade-up">
+    
+    <div class="flex items-center gap-3 flex-shrink-0">
+        <img src="../favicon.ico" alt="logo" class="w-7 h-7 rounded-lg" draggable="false">
+        <span class="text-sm font-bold tracking-tight">CERO<span class="text-[var(--text-muted)] font-normal">CLIENT</span></span>
+    </div>
+
+    <div class="flex-1 flex justify-center h-10">
+        <nav class="app-tabs nodrag">
+            <button class="app-tab active" data-tab="jouer" onclick="switchAppTab('jouer')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 3l14 9-14 9V3z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Jouer
+            </button>
+            <button class="app-tab" data-tab="instances" onclick="switchAppTab('instances')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+                </svg>
+                Instances
+            </button>
+            <button class="app-tab" data-tab="message" onclick="switchAppTab('message')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Message
+            </button>
+            <button class="app-tab" data-tab="parametre" onclick="switchAppTab('parametre')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Paramètre
+            </button>
+        </nav>
+    </div>
+
+    <div class="flex items-center gap-2 flex-shrink-0">
+        <button id="support-btn" class="support-btn nodrag" onclick="openSupportLink()">
+            Soutenir Cero Client
+        </button>
+        <span id="supporter-badge" class="hidden nodrag">
+            <span style="margin-right:4px;">✦</span> Supporter
+        </span>
+        <span id="playerName" class="text-xs font-semibold text-[var(--text-muted)] mr-2">—</span>
+        
+        <button class="wc-btn nodrag" onclick="window.minimize_window && window.minimize_window()" aria-label="Réduire">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="5" y1="12" x2="19" y2="12" stroke-linecap="round"/>
+            </svg>
+        </button>
+        <button class="wc-btn close nodrag" onclick="window.close_to_tray && window.close_to_tray()" oncontextmenu="showCloseMenu(event); return false;" aria-label="Fermer">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="6" y1="6" x2="18" y2="18" stroke-linecap="round"/>
+                <line x1="18" y1="6" x2="6" y2="18" stroke-linecap="round"/>
+            </svg>
+        </button>
+    </div>
+</header>
+
+<div id="closeMenu">
+    <button onclick="hideCloseMenu(); window.close_to_tray && window.close_to_tray()">Masquer le launcher</button>
+    <button class="danger" onclick="hideCloseMenu(); window.quit_app && window.quit_app()">Fermer le launcher</button>
+</div>
+
+<script>
+    let currentUserPseudo = "impossible_de_charger_le_pseudo";
+    let currentUserUuid = null;
+
+    async function fetchUserProfile() {
+        if (window.getAccount) {
+            try {
+                const accountData = await window.getAccount();
+                let account = accountData;
+                
+                if (typeof accountData === 'string') {
+                    account = JSON.parse(accountData);
+                }
+
+                const pseudo = account.name
+                            || account.username
+                            || account.profile_name
+                            || (account.profile && account.profile.name);
+
+                const uuid = account.id
+                          || account.uuid
+                          || (account.profile && account.profile.id);
+
+                if (pseudo) {
+                    currentUserPseudo = pseudo;
+                    const playerNameSpan = document.getElementById('playerName');
+                    if (playerNameSpan) {
+                        playerNameSpan.innerText = currentUserPseudo;
+                    }
+                } else {
+                    console.warn("⚠️ Le pseudo est introuvable dans ce JSON :", account);
+                }
+
+                if (uuid) {
+                    currentUserUuid = uuid;
+                    checkSupporterStatus(uuid);
+                } else {
+                    console.warn("⚠️ L'uuid est introuvable dans ce JSON :", account);
+                }
+
+            } catch (error) {
+                console.error("❌ Erreur lors de la lecture du compte :", error);
+            }
+        } else {
+            console.error("❌ window.getAccount n'est pas injecté par le C.");
+        }
+    }
+
+async function checkSupporterStatus(uuid) {
+        try {
+            const res = await fetch(`https://www.cerostudio.fr/api/check-supporter.php?uuid=${encodeURIComponent(uuid)}`);
+            if (!res.ok) return; 
+            const data = await res.json();
+
+            if (data.supporter) {
+                const btn = document.getElementById('support-btn');
+                const badge = document.getElementById('supporter-badge');
+                const pseudo = document.getElementById('playerName');
+                
+                if (btn) btn.style.display = 'none';
+                if (badge) badge.classList.remove('hidden');
+                if (pseudo) {
+                    pseudo.style.setProperty('color', '#f472b6', 'important');
+                }
+            }
+        } catch (err) {
+            console.warn("Vérification supporter impossible (pas bloquant) :", err);
+        }
+    }
+
+    fetchUserProfile();
+
+    function openSupportLink() {
+        const baseUrl = "https://cerostudio.fr/ceroclient/supporter";
+        const url = `${baseUrl}?pseudo=${encodeURIComponent(currentUserPseudo)}`;
+
+        if (window.shell_open) {
+            window.shell_open(url);
+        } else {
+            window.open(url, "_blank");
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const isAppContext = document.getElementById('appTab-jouer') !== null;
+        if (!isAppContext) {
+            const nav = document.querySelector('.app-tabs');
+            if (nav) nav.style.display = 'none';
+
+            const supportBtn = document.getElementById('support-btn');
+            if (supportBtn) supportBtn.style.display = 'none';
+
+            const supporterBadge = document.getElementById('supporter-badge');
+            if (supporterBadge) supporterBadge.style.display = 'none';
+        }
+    });
+</script>
+
+<style>
+    .app-tabs {
+        display: flex;
+        gap: 4px;
+        background: rgba(255,255,255,0.03);
+        padding: 3px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.04);
+    }
+    .app-tab {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 9px;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-muted);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        transition: background .15s ease, color .15s ease;
+        white-space: nowrap;
+    }
+    .app-tab:hover {
+        background: rgba(255,255,255,0.06);
+        color: var(--text-main);
+    }
+    .app-tab.active {
+        background: var(--card-bg, rgba(255,255,255,0.08));
+        color: var(--text-main);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+    .app-tab svg { flex-shrink: 0; }
+
+    #supporter-badge {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 3px 8px;
+        border-radius: 4px;
+        background: linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(168, 85, 247, 0.15));
+        border: 1px solid rgba(236, 72, 153, 0.3);
+        color: #f472b6;
+        margin-right: 4px;
+        cursor: default;
+        backdrop-filter: blur(4px);
+        display: inline-flex;
+        align-items: center;
+        letter-spacing: 0.05em;
+        box-shadow: 0 0 10px rgba(236, 72, 153, 0.1);
+    }
+
+    .hidden {
+        display: none !important;
+    }
+</style>

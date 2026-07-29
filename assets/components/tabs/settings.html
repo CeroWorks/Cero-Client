@@ -1,0 +1,574 @@
+<div id="appTab-parametre" class="app-tab-panel flex-1 flex gap-4 overflow-hidden" style="display:none">
+
+    <aside class="card rounded-2xl flex flex-col w-52 fade-up overflow-hidden flex-shrink-0">
+        <div style="padding:14px 16px 10px;">
+            <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60">Paramètres</p>
+        </div>
+        <nav id="settingsNav" class="flex flex-col gap-0.5 px-2 pb-2">
+            <button class="settings-nav-item active" onclick="showSettingsSection('jeu')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                Jeu
+            </button>
+            <button class="settings-nav-item" onclick="showSettingsSection('interface')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+                Interface
+            </button>
+            <button class="settings-nav-item" onclick="showSettingsSection('compte')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                Compte
+            </button>
+            <button class="settings-nav-item" onclick="showSettingsSection('a-propos')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                À propos
+            </button>
+        </nav>
+    </aside>
+
+    <section class="card rounded-2xl flex-1 flex flex-col fade-up delay-2 overflow-hidden">
+        <div id="settingsContent" class="flex-1 overflow-y-auto settings-scroll">
+
+            <div id="settingsSection-jeu" class="settings-section">
+                <div class="settings-group">
+                    <p class="settings-group-title">Performance</p>
+
+                    <div class="settings-row">
+                        <div class="settings-label">
+                            <p>RAM allouée</p>
+                            <p class="settings-desc">Mémoire maximale pour Minecraft</p>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <input type="range" id="ramSlider" min="1024" max="16384" step="1024" value="2048"
+                                class="settings-slider" oninput="updateRamLabel(this.value)">
+                            <span id="ramLabel" class="settings-value-badge">2 Go</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="settings-group">
+                    <p class="settings-group-title">Lancement</p>
+
+                    <div class="settings-row">
+                        <div class="settings-label">
+                            <p>Fermer le launcher au lancement</p>
+                            <p class="settings-desc">Masque la fenêtre quand Minecraft démarre</p>
+                        </div>
+                        <label class="settings-toggle">
+                            <input type="checkbox" id="hideOnLaunch">
+                            <span class="toggle-track"></span>
+                        </label>
+                    </div>
+
+                    <div class="settings-row">
+                        <div class="settings-label">
+                            <p>Rouvrir au retour</p>
+                            <p class="settings-desc">Réaffiche le launcher quand Minecraft se ferme</p>
+                        </div>
+                        <label class="settings-toggle">
+                            <input type="checkbox" id="reopenOnStop" checked>
+                            <span class="toggle-track"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-footer">
+                    <button class="btn-primary" style="font-size:12px;" onclick="saveSettingsJeu()">Enregistrer</button>
+                </div>
+            </div>
+
+            <div id="settingsSection-interface" class="settings-section" style="display:none">
+                <div class="settings-group">
+                    <p class="settings-group-title">Apparence</p>
+
+                    <div class="settings-row">
+                        <div class="settings-label">
+                            <p>Thème</p>
+                            <p class="settings-desc">Couleur principale de l'interface</p>
+                        </div>
+                        <div style="display:flex;gap:6px;">
+                            <button class="theme-dot active" style="background:#3b82f6" onclick="setTheme('#3b82f6',this)" title="Bleu"></button>
+                            <button class="theme-dot" style="background:#8b5cf6" onclick="setTheme('#8b5cf6',this)" title="Violet"></button>
+                            <button class="theme-dot" style="background:#10b981" onclick="setTheme('#10b981',this)" title="Vert"></button>
+                            <button class="theme-dot" style="background:#f59e0b" onclick="setTheme('#f59e0b',this)" title="Ambre"></button>
+                            <button class="theme-dot" style="background:#ef4444" onclick="setTheme('#ef4444',this)" title="Rouge"></button>
+                            <button class="theme-dot" style="background:#ec4899" onclick="setTheme('#ec4899',this)" title="Rose"></button>
+                        </div>
+                    </div>
+
+                    <div class="settings-row">
+                        <div class="settings-label">
+                            <p>Langue</p>
+                            <p class="settings-desc">Langue de l'interface</p>
+                        </div>
+                        <select id="langSelect" class="settings-select">
+                            <option value="fr">Français</option>
+                            <option value="en">English</option>
+                            <option value="de">Deutsch</option>
+                            <option value="es">Español</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="settings-footer">
+                    <button class="btn-primary" style="font-size:12px;" onclick="saveSettingsInterface()">Enregistrer</button>
+                </div>
+            </div>
+
+            <div id="settingsSection-compte" class="settings-section" style="display:none">
+                <div class="settings-group">
+                    <p class="settings-group-title">Compte actif</p>
+
+                    <div class="settings-row" style="gap:12px;">
+                        <img id="settingsAvatar" src="" class="friend-head" style="width:40px;height:40px;border-radius:8px;image-rendering:pixelated;">
+                        <div style="flex:1;min-width:0;">
+                            <p id="settingsAccountName" style="font-size:13px;font-weight:600;">—</p>
+                            <p id="settingsAccountUuid" style="font-size:10px;color:var(--text-muted);font-family:monospace;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">—</p>
+                        </div>
+                        <span class="settings-badge-online">Connecté</span>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <p class="settings-group-title">Actions</p>
+
+                    <div class="settings-row">
+                        <div class="settings-label">
+                            <p>Se déconnecter</p>
+                            <p class="settings-desc">Supprime le compte de ce launcher</p>
+                        </div>
+                        <button class="btn-remove" style="font-size:11px;padding:5px 12px;" onclick="logoutAccount()">Déconnexion</button>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <p class="settings-group-title">Données</p>
+
+                    <div class="settings-row">
+                        <div class="settings-label">
+                            <p>Réinitialiser les paramètres</p>
+                            <p class="settings-desc">Remet tous les paramètres par défaut</p>
+                        </div>
+                        <button class="btn-ghost" style="font-size:11px;padding:5px 12px;color:#f87171;border-color:rgba(248,113,113,0.3);" onclick="resetSettings()">Réinitialiser</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="settingsSection-a-propos" class="settings-section" style="display:none">
+                <div class="settings-group">
+                    <p class="settings-group-title">CeroClient</p>
+
+                    <div class="settings-row">
+                        <div class="settings-label"><p>Version du launcher</p></div>
+                        <span class="settings-value-badge" id="launcherVersion"><% version %></span>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <p class="settings-group-title">Licences</p>
+                    <div class="settings-row">
+                        <p style="font-size:11px;color:var(--text-muted);line-height:1.6;">
+                            CeroClient utilise, better-sqlite3, Express, skinview3d, webview, WebKitGTK, GTK+ 3, Cairo, libayatana-appindicator, Microsoft Edge WebView2 SDK / Loader, libcurl, zlib, cJSON, Miniz et tiny-remapper.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+<div id="unsavedModal" class="modal-backdrop">
+    <div class="modal">
+        <div class="modal-header">
+            <span class="modal-title">Modifications non sauvegardées</span>
+        </div>
+        <div class="modal-body" style="text-align:center; padding: 20px;">
+            <p style="font-size:13px;">Il vous reste des modifications non sauvegardées.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-ghost" onclick="discardUnsavedChanges()">Ignorer les changements</button>
+            <button class="btn-primary" onclick="saveUnsavedChanges()">Sauvegarder</button>
+        </div>
+    </div>
+</div>
+<div id="logoutModal" class="modal-backdrop">
+    <div class="modal">
+        <div class="modal-header">
+            <span class="modal-title">Se déconnecter</span>
+            <button class="wc-btn" onclick="closeLogoutModal()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="6" y1="6" x2="18" y2="18" stroke-linecap="round"/>
+                    <line x1="18" y1="6" x2="6" y2="18" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-body" style="text-align:center; padding: 24px 20px;">
+            <img id="logoutModalAvatar" class="friend-head" style="width:48px;height:48px;margin:0 auto 12px;display:block;border-radius:8px;image-rendering:pixelated;" src="" alt="">
+            <p style="font-size:14px;font-weight:600;">Se déconnecter de ce compte ?</p>
+            <p style="font-size:11px;color:var(--text-muted);margin-top:4px;">Vous devrez vous reconnecter avec Microsoft pour rejouer.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-ghost" onclick="closeLogoutModal()">Annuler</button>
+            <button id="logoutConfirmBtn" class="btn-remove" onclick="confirmLogout()">Se déconnecter</button>
+        </div>
+    </div>
+</div>
+</div>
+
+<style>
+.settings-nav-item {
+    display:flex; align-items:center; gap:8px;
+    width:100%; text-align:left;
+    padding:7px 10px;
+    border-radius:8px;
+    font-size:12px; font-weight:500;
+    color:var(--text-muted);
+    background:none; border:none; cursor:pointer;
+    transition:background .15s, color .15s;
+}
+.settings-nav-item:hover { background:rgba(255,255,255,0.05); color:var(--text-main); }
+.settings-nav-item.active { background:rgba(255,255,255,0.08); color:var(--text-main); font-weight:600; }
+
+.settings-scroll { padding:20px; display:flex; flex-direction:column; gap:0; }
+.settings-section { display:flex; flex-direction:column; gap:20px; }
+
+.settings-group {
+    display:flex; flex-direction:column; gap:0;
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:12px;
+    overflow:hidden;
+}
+.settings-group-title {
+    font-size:10px; font-weight:700;
+    text-transform:uppercase; letter-spacing:.15em;
+    color:var(--text-muted); opacity:.6;
+    padding:12px 16px 8px;
+    border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.settings-row {
+    display:flex; align-items:center; justify-content:space-between;
+    gap:16px; padding:12px 16px;
+    border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.settings-row:last-child { border-bottom:none; }
+.settings-label { flex:1; min-width:0; }
+.settings-label p:first-child { font-size:12px; font-weight:500; }
+.settings-desc { font-size:10px; color:var(--text-muted); margin-top:2px; }
+
+.settings-input {
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:8px; padding:6px 10px;
+    font-size:12px; color:var(--text-main);
+    outline:none;
+}
+.settings-input:focus { border-color:var(--accent-color,#3b82f6); }
+
+.settings-select {
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:8px; padding:6px 10px;
+    font-size:12px; color:var(--text-main);
+    outline:none; cursor:pointer;
+    color-scheme: dark;
+}
+
+.settings-select option {
+    background:#1a1a1a;
+    color:var(--text-main);
+}
+
+.settings-slider {
+    -webkit-appearance:none;
+    width:140px; height:4px;
+    border-radius:2px;
+    background:rgba(255,255,255,0.1);
+    outline:none; cursor:pointer;
+}
+.settings-slider::-webkit-slider-thumb {
+    -webkit-appearance:none;
+    width:14px; height:14px;
+    border-radius:50%;
+    background:var(--accent-color,#3b82f6);
+    cursor:pointer;
+}
+
+.settings-toggle { position:relative; display:inline-block; width:36px; height:20px; cursor:pointer; }
+.settings-toggle input { opacity:0; width:0; height:0; }
+.toggle-track {
+    position:absolute; inset:0;
+    background:rgba(255,255,255,0.1);
+    border-radius:999px;
+    transition:background .2s;
+}
+.toggle-track::after {
+    content:''; position:absolute;
+    width:14px; height:14px;
+    border-radius:50%; background:#fff;
+    top:3px; left:3px;
+    transition:transform .2s;
+}
+.settings-toggle input:checked + .toggle-track { background:var(--accent-color,#3b82f6); }
+.settings-toggle input:checked + .toggle-track::after { transform:translateX(16px); }
+
+.settings-value-badge {
+    font-size:11px; font-weight:600; font-family:monospace;
+    background:rgba(255,255,255,0.07);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:6px; padding:3px 8px;
+    color:var(--text-muted); white-space:nowrap;
+    min-width:52px;
+    text-align:center;
+    display:inline-block;
+}
+.settings-badge-online {
+    font-size:10px; font-weight:700;
+    background:rgba(59,165,93,0.15);
+    border:1px solid rgba(59,165,93,0.3);
+    color:#3ba55d; border-radius:6px;
+    padding:3px 8px; white-space:nowrap;
+}
+
+.theme-dot {
+    width:20px; height:20px; border-radius:50%;
+    border:2px solid transparent; cursor:pointer;
+    transition:transform .15s, border-color .15s;
+}
+.theme-dot:hover { transform:scale(1.15); }
+.theme-dot.active { border-color:white; }
+
+.settings-footer {
+    display:flex; justify-content:flex-end;
+    padding-top:4px;
+}
+</style>
+
+<script>
+(function() {
+
+    let currentSection = 'jeu';
+    let pendingSection = null;
+    let dirty = false;
+    let savedAccentColor = null;
+    let pendingLeaveCallback = null;
+
+    function markDirty() { dirty = true; }
+
+    function attachDirtyListeners(sectionId) {
+        const section = document.getElementById('settingsSection-' + sectionId);
+        if (!section) return;
+        section.querySelectorAll('input, select').forEach(function(el) {
+            el.removeEventListener('input', markDirty);
+            el.removeEventListener('change', markDirty);
+            el.addEventListener('input', markDirty);
+            el.addEventListener('change', markDirty);
+        });
+    }
+
+    window.showSettingsSection = function(id) {
+        if (dirty && id !== currentSection) {
+            pendingSection = id;
+            document.getElementById('unsavedModal').classList.add('active');
+            return;
+        }
+        switchToSection(id, event ? event.currentTarget : null);
+    };
+
+    function switchToSection(id, btnEl) {
+        document.querySelectorAll('.settings-section').forEach(s => s.style.display = 'none');
+        document.querySelectorAll('.settings-nav-item').forEach(b => b.classList.remove('active'));
+        const section = document.getElementById('settingsSection-' + id);
+        if (section) section.style.display = 'flex';
+
+        const navBtn = btnEl || document.querySelector('.settings-nav-item[onclick*="' + id + '"]');
+        if (navBtn) navBtn.classList.add('active');
+
+        currentSection = id;
+        dirty = false;
+        attachDirtyListeners(id);
+
+        if (id === 'compte') loadAccountSettings();
+        if (id === 'a-propos') loadVersionInfo();
+    }
+
+window.saveUnsavedChanges = function() {
+    if (currentSection === 'jeu') saveSettingsJeu();
+    if (currentSection === 'interface') saveSettingsInterface();
+    document.getElementById('unsavedModal').classList.remove('active');
+    dirty = false;
+    const target = pendingSection;
+    const leaveCb = pendingLeaveCallback;
+    pendingSection = null;
+    pendingLeaveCallback = null;
+    if (target) switchToSection(target);
+    if (leaveCb) leaveCb();
+};
+
+window.discardUnsavedChanges = function() {
+    document.getElementById('unsavedModal').classList.remove('active');
+    const target = pendingSection;
+    const leaveCb = pendingLeaveCallback;
+    pendingSection = null;
+    pendingLeaveCallback = null;
+    dirty = false;
+
+    if (window.get_settings) {
+        window.get_settings().then(function(s) {
+            applySettings(s, true);
+            if (target) switchToSection(target);
+            if (leaveCb) leaveCb();
+        }).catch(() => { if (target) switchToSection(target); if (leaveCb) leaveCb(); });
+    } else {
+        applySettings({ accentColor: savedAccentColor }, true);
+        if (target) switchToSection(target);
+        if (leaveCb) leaveCb();
+    }
+};
+
+    window.updateRamLabel = function(val) {
+        const mo = Math.round(Number(val) / 1024) * 1024;
+        const go = mo / 1024;
+        document.getElementById('ramLabel').textContent = go + ' Go';
+    };
+
+    window.setTheme = function(color, btn, persist) {
+        document.querySelectorAll('.theme-dot').forEach(d => d.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        document.documentElement.style.setProperty('--accent-color', color);
+        if (persist !== false) {
+            markDirty();
+        }
+    };
+
+    function loadAccountSettings() {
+        if (!window.getAccount) return;
+        window.getAccount().then(function(raw) {
+            const acc = typeof raw === 'string' ? JSON.parse(raw) : raw;
+            const name = acc.name || acc.username || '—';
+            const uuid = acc.uuid || acc.id || '';
+            document.getElementById('settingsAccountName').textContent = name;
+            document.getElementById('settingsAccountUuid').textContent = uuid;
+            if (uuid) document.getElementById('settingsAvatar').src = 'https://mc-heads.net/avatar/' + uuid + '/40';
+        }).catch(() => {});
+    }
+
+    window.switchAccount = function() {
+        if (window.switch_account) window.switch_account();
+    };
+
+window.logoutAccount = function() {
+    if (window.getAccount) {
+        window.getAccount().then(function(raw) {
+            const acc = typeof raw === 'string' ? JSON.parse(raw) : raw;
+            const uuid = acc.uuid || acc.id || '';
+            if (uuid) document.getElementById('logoutModalAvatar').src = 'https://mc-heads.net/avatar/' + uuid + '/48';
+        }).catch(() => {});
+    }
+    document.getElementById('logoutModal').classList.add('active');
+};
+
+window.closeLogoutModal = function() {
+    document.getElementById('logoutModal').classList.remove('active');
+};
+
+window.confirmLogout = function() {
+    const btn = document.getElementById('logoutConfirmBtn');
+    btn.disabled = true;
+    btn.textContent = '...';
+
+    if (!window.logout_account) {
+        btn.disabled = false;
+        btn.textContent = 'Se déconnecter';
+        closeLogoutModal();
+        return;
+    }
+
+    window.logout_account().then(function() {
+        closeLogoutModal();
+        window.location.href = 'login.html'; // adapte le chemin relatif selon où se trouve index.html
+    }).catch(function(e) {
+        console.error('logout_account:', e);
+        btn.disabled = false;
+        btn.textContent = 'Se déconnecter';
+        alert("Impossible de se déconnecter : " + (e && e.message ? e.message : e));
+    });
+};
+    window.resetSettings = function() {
+        if (!confirm('Réinitialiser tous les paramètres ?')) return;
+        if (window.reset_settings) window.reset_settings();
+    };
+
+    function loadVersionInfo() {
+        if (window.getAppVersion) {
+            window.getAppVersion().then(v => {
+                if (v) document.getElementById('launcherVersion').textContent = v;
+            }).catch(() => {});
+        }
+    }
+
+    window.saveSettingsJeu = function() {
+        const ram = Math.round(Number(document.getElementById('ramSlider').value) / 1024) * 1024;
+        const hide = document.getElementById('hideOnLaunch').checked;
+        const reopen = document.getElementById('reopenOnStop').checked;
+        if (window.save_settings) {
+            window.save_settings({ ram: ram, hideOnLaunch: hide, reopenOnStop: reopen });
+        }
+        dirty = false;
+    };
+
+    window.saveSettingsInterface = function() {
+        const lang = document.getElementById('langSelect').value;
+        const accent = document.documentElement.style.getPropertyValue('--accent-color') || savedAccentColor;
+        if (window.save_settings) window.save_settings({ lang: lang, accentColor: accent });
+        savedAccentColor = accent;
+        dirty = false;
+    };
+
+    function applySettings(s, isDiscard) {
+        if (!s) {
+            if (isDiscard) {
+                const firstDot = document.querySelector('.theme-dot');
+                if (firstDot) setTheme(savedAccentColor || '#3b82f6', firstDot, false);
+            }
+            return;
+        }
+        if (s.ram) {
+            const ram = Math.round(Number(s.ram) / 1024) * 1024;
+            document.getElementById('ramSlider').value = ram;
+            updateRamLabel(ram);
+        }
+        if (s.hideOnLaunch != null) document.getElementById('hideOnLaunch').checked = s.hideOnLaunch;
+        if (s.reopenOnStop != null) document.getElementById('reopenOnStop').checked = s.reopenOnStop;
+        if (s.lang) document.getElementById('langSelect').value = s.lang;
+
+        if (s.accentColor) {
+            savedAccentColor = s.accentColor;
+            const dot = document.querySelector('.theme-dot[style*="' + s.accentColor + '"]');
+            setTheme(s.accentColor, dot, false); // persist=false : ne déclenche pas dirty
+        } else if (isDiscard) {
+            const firstDot = document.querySelector('.theme-dot');
+            setTheme(savedAccentColor || '#3b82f6', firstDot, false);
+        }
+    }
+
+    if (window.get_settings) {
+        window.get_settings().then(function(s) {
+            applySettings(s, false);
+            attachDirtyListeners(currentSection);
+        }).catch(() => {
+            attachDirtyListeners(currentSection);
+        });
+    } else {
+        attachDirtyListeners(currentSection);
+    }
+
+    window.hasUnsavedSettings = function() {
+        return dirty;
+    };
+
+    window.confirmLeaveSettings = function(onConfirmLeave) {
+        if (!dirty) { onConfirmLeave(); return; }
+        pendingSection = null; // pas de changement de section interne, juste un départ d'onglet
+        pendingLeaveCallback = onConfirmLeave;
+        document.getElementById('unsavedModal').classList.add('active');
+    };
+
+})();
+</script>

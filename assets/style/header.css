@@ -1,0 +1,98 @@
+.wc-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.wc-btn svg,
+.wc-btn svg * {
+    pointer-events: none;
+}
+
+.wc-btn:hover {
+    background: var(--hover-bg);
+    color: var(--text-main);
+}
+
+.wc-btn.close:hover {
+    background: #e74c3c;
+    color: white;
+}
+
+#closeMenu {
+    display: none;
+    position: fixed;
+    z-index: 600;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 4px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    min-width: 180px;
+}
+
+#closeMenu button {
+    width: 100%;
+    text-align: left;
+    padding: 8px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+#closeMenu button:hover  { background: var(--hover-bg); }
+#closeMenu button.danger { color: #f87171; }
+
+.support-btn {
+    position: relative;
+    overflow: hidden;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-main); 
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.support-btn:hover {
+    background: var(--hover-bg);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    transform: translateY(-1px);
+}
+
+.support-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.05) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: skewX(-25deg);
+    transition: all 0s ease;
+}
+
+.support-btn:hover::after {
+    left: 200%;
+    transition: all 0.6s ease-in-out;
+}

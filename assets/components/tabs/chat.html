@@ -1,0 +1,639 @@
+<div id="appTab-message" class="app-tab-panel flex-1 flex gap-4 overflow-hidden" style="display:none">
+
+    <aside class="card rounded-2xl friends-card flex flex-col w-64 fade-up overflow-hidden">
+        <div class="friends-header">
+            <div>
+                <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60">Discussions</p>
+                <p class="text-sm font-bold mt-0.5"><span id="chatOnlineCount">0</span> en ligne</p>
+            </div>
+        </div>
+        <div id="chatFriendsList" class="friends-list flex-1 overflow-y-auto"></div>
+    </aside>
+
+    <section class="card rounded-2xl flex-1 flex flex-col fade-up delay-2 overflow-hidden" id="chatPanel">
+
+        <div id="chatEmptyState" class="flex-1 flex items-center justify-center">
+            <p class="text-sm text-[var(--text-muted)]">Sélectionne un ami en ligne pour discuter</p>
+        </div>
+
+        <div id="chatActive" class="flex-1 flex flex-col overflow-hidden" style="display:none">
+
+            <div class="chat-header">
+                <span class="status-dot-wrap">
+                    <img id="chatHeaderAvatar" class="friend-head" src="" alt="">
+                    <span id="chatHeaderDot" class="status-dot offline"></span>
+                </span>
+                <div>
+                    <p class="text-sm font-bold" id="chatHeaderName">—</p>
+                    <p class="text-[10px] text-[var(--text-muted)]" id="chatHeaderStatus">Hors ligne</p>
+                </div>
+            </div>
+
+            <div id="chatMessages" class="chat-messages flex-1 overflow-y-auto"></div>
+
+            <div class="chat-input-bar">
+                <input id="chatInput" type="text" maxlength="1000" placeholder="Écrire un message..." autocomplete="off">
+                <button id="chatSendBtn" class="btn-primary" onclick="sendChatMessage()">Envoyer</button>
+            </div>
+
+        </div>
+    </section>
+
+</div>
+
+<style>
+.chat-header {
+    display:flex; align-items:center; gap:10px;
+    padding:14px 16px;
+    border-bottom:1px solid var(--border-color, rgba(255,255,255,0.08));
+}
+.chat-messages {
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+    gap:12px; /* Un peu plus d'écart entre les messages */
+}
+.chat-bubble-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    max-width: 70%;
+}
+.chat-bubble-row.mine {
+    align-self: flex-end;
+    flex-direction: row-reverse; /* Avatar à droite pour mes messages */
+}
+.chat-bubble-row.theirs {
+    align-self: flex-start;
+}
+.chat-bubble-content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.chat-bubble-row.mine .chat-bubble-content { align-items: flex-end; }
+.chat-bubble-row.theirs .chat-bubble-content { align-items: flex-start; }
+
+.chat-bubble-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 2px; /* Aligne avec le nom */
+    object-fit: cover;
+}
+
+/* Style du nom de l'expéditeur */
+.chat-bubble-author {
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 2px;
+    padding: 0 4px;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+.chat-bubble-row.mine .chat-bubble-author { color: var(--accent-color, #3b82f6); }
+
+.chat-bubble {
+    position:relative;
+    padding:8px 12px;
+    border-radius:14px;
+    font-size:13px;
+    line-height:1.4;
+    word-break:break-word;
+}
+.chat-bubble-row.mine .chat-bubble {
+    background:var(--accent-color, #3b82f6);
+    color:#fff;
+    border-bottom-right-radius:4px;
+}
+.chat-bubble-row.theirs .chat-bubble {
+    background:rgba(255,255,255,0.07);
+    border-bottom-left-radius:4px;
+}
+.chat-meta {
+    font-size:10px;
+    color:var(--text-muted);
+    margin-top:2px;
+    display:flex;
+    gap:6px;
+    align-items:center;
+    padding: 0 4px;
+}
+.chat-bubble-actions {
+    display:none;
+    gap:4px;
+    margin-top:2px;
+}
+.chat-bubble-row.mine:hover .chat-bubble-actions { display:flex; }
+.chat-bubble-actions button {
+    font-size:10px;
+    color:var(--text-muted);
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding:0;
+}
+.chat-bubble-actions button:hover { color:var(--text-main); }
+.chat-input-bar {
+    display:flex;
+    gap:8px;
+    padding:12px 16px;
+    border-top:1px solid var(--border-color, rgba(255,255,255,0.08));
+}
+.chat-input-bar input {
+    flex:1;
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:10px;
+    padding:8px 12px;
+    font-size:13px;
+    color:var(--text-main);
+}
+.chat-input-bar input:focus { outline:none; border-color:var(--accent-color,#3b82f6); }
+.chat-friend-item.active { background:rgba(255,255,255,0.08); }
+.chat-unread-badge {
+    background:var(--accent-color,#3b82f6);
+    color:#fff;
+    font-size:10px;
+    font-weight:700;
+    border-radius:999px;
+    min-width:16px;
+    height:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 4px;
+}
+.chat-edit-input {
+    width:100%;
+    background:rgba(255,255,255,0.1);
+    border:1px solid rgba(255,255,255,0.2);
+    border-radius:10px;
+    padding:6px 10px;
+    font-size:13px;
+    color:#fff;
+}
+.status-dot-wrap { position:relative; display:inline-block; flex-shrink:0; }
+.status-dot {
+    position:absolute;
+    bottom:-2px;
+    right:-2px;
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    border:2px solid var(--bg-color, #1a1a1a);
+}
+.status-dot.online   { background:#3ba55d; }  /* vert */
+.status-dot.ingame   { background:#5865f2; }  /* bleu/violet, distinct du vert */
+.status-dot.offline  { background:#747f8d; }  /* gris */
+</style>
+
+<script>
+(function() {
+    let allFriends = [];
+    let activeChatUuid = null;
+    let messagesCache = {};
+    let unreadCounts = {};
+
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.friendsCache && window.friendsCache.length > 0) {
+            loadChatFriends();
+        } else {
+            window.onFriendsCacheReady = loadChatFriends;
+        }
+
+        loadUnreadCounts();
+
+        ceroWS.onMessage(function(msg) {
+            if (!msg || !msg.type) return;
+            if (msg.type === 'message')        handleIncomingMessage(msg.message, msg.from);
+            if (msg.type === 'message_edited') handleEditedMessage(msg.message);
+            if (msg.type === 'message_deleted') handleDeletedMessage(msg.id);
+            if (msg.type === 'friend_status')  handleStatusUpdate(msg);
+            if (msg.type === 'friend_accepted' || msg.type === 'friend_removed') {
+                setTimeout(loadChatFriends, 300);
+            }
+        });
+
+        document.getElementById('chatInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); }
+        });
+    });
+
+    // Récupère mon UUID de plusieurs manières possibles
+    function getMyUuid() {
+        if (window.myUuid) return window.myUuid;
+        if (window.account && window.account.uuid) return window.account.uuid;
+        try {
+            const accStr = localStorage.getItem('account');
+            if (accStr) {
+                const acc = JSON.parse(accStr);
+                if (acc.uuid) return acc.uuid;
+                if (acc.profile && acc.profile.uuid) return acc.profile.uuid;
+            }
+        } catch (e) {}
+        return null;
+    }
+
+    function updateChatHeaderStatus(status) {
+        const statusClass = status === 'ingame' ? 'ingame' : (status === 'online' ? 'online' : 'offline');
+        const statusLabel = statusClass === 'ingame' ? 'En jeu' : (statusClass === 'online' ? 'En ligne' : 'Hors ligne');
+        document.getElementById('chatHeaderDot').className = 'status-dot ' + statusClass;
+        document.getElementById('chatHeaderStatus').textContent = statusLabel;
+    }
+
+    function loadChatFriends() {
+        allFriends = (window.friendsCache || []).map(function(f) {
+            return {
+                uuid: f.uuid,
+                username: f.name,
+                status: f.status || 'offline',
+                avatarUrl: 'https://mc-heads.net/avatar/' + encodeURIComponent(f.uuid) + '/28'
+            };
+        });
+        renderChatFriends();
+    }
+
+    function loadUnreadCounts() {
+        window.getMcToken().then(function(token) {
+            fetch(SERVER_URL + '/api/messages/unread/count', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(r => r.json())
+            .then(data => {
+                (data.unread || []).forEach(function(row) {
+                    unreadCounts[row.from_uuid] = row.count;
+                });
+                renderChatFriends();
+            })
+            .catch(e => console.error('[chat] unread count', e));
+        });
+    }
+
+    function renderChatFriends() {
+        const list = document.getElementById('chatFriendsList');
+        const online = allFriends.filter(f => f.status && f.status !== 'offline');
+        const offline = allFriends.filter(f => !f.status || f.status === 'offline');
+
+        document.getElementById('chatOnlineCount').textContent = online.length;
+
+        list.innerHTML = '';
+        online.concat(offline).forEach(function(f) {
+            const statusClass = f.status === 'ingame' ? 'ingame' : (f.status === 'online' ? 'online' : 'offline');
+            const statusLabel = statusClass === 'ingame' ? 'En jeu' : (statusClass === 'online' ? 'En ligne' : 'Hors ligne');
+            const unread = unreadCounts[f.uuid] || 0;
+
+            const item = document.createElement('div');
+            item.className = 'friend-item chat-friend-item' + (f.uuid === activeChatUuid ? ' active' : '');
+            item.style.cursor = 'pointer';
+            item.onclick = function() { openChat(f.uuid, f); };
+
+            item.innerHTML = `
+                <span class="status-dot-wrap">
+                    <img class="friend-head" src="${f.avatarUrl || ''}" alt="">
+                    <span class="status-dot ${statusClass}"></span>
+                </span>
+                <div class="friend-info" style="flex:1;min-width:0;">
+                    <p class="friend-name" style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${statusClass === 'offline' ? 'opacity:0.5;' : ''}">${escapeHtml(f.username)}</p>
+                    <p style="font-size:10px;color:var(--text-muted);">${statusLabel}</p>
+                </div>
+                ${unread > 0 ? `<span class="chat-unread-badge">${unread > 9 ? '9+' : unread}</span>` : ''}
+            `;
+            list.appendChild(item);
+        });
+
+        if (online.length === 0 && offline.length === 0) {
+            list.innerHTML = '<div class="modal-empty" style="padding:20px;text-align:center;font-size:12px;color:var(--text-muted);">Aucun ami pour le moment</div>';
+        }
+    }
+
+    function handleStatusUpdate(msg) {
+        const f = allFriends.find(fr => fr.uuid === msg.uuid);
+        if (f) {
+            f.status = msg.status;
+            renderChatFriends();
+            if (activeChatUuid === msg.uuid) {
+                updateChatHeaderStatus(msg.status);
+            }
+        }
+    }
+
+    function openChat(uuid, friendData) {
+        activeChatUuid = uuid;
+        unreadCounts[uuid] = 0;
+        renderChatFriends();
+
+        document.getElementById('chatEmptyState').style.display = 'none';
+        document.getElementById('chatActive').style.display = 'flex';
+
+        const friend = friendData || allFriends.find(f => f.uuid === uuid) || {};
+        document.getElementById('chatHeaderAvatar').src = friend.avatarUrl || '';
+        document.getElementById('chatHeaderName').textContent = friend.username || '—';
+        updateChatHeaderStatus(friend.status);
+
+        if (messagesCache[uuid]) {
+            renderMessages(uuid);
+        } else {
+            fetchMessages(uuid);
+        }
+    }
+
+    function fetchMessages(uuid) {
+        window.getMcToken().then(function(token) {
+            fetch(SERVER_URL + '/api/messages/' + uuid + '?limit=50', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(r => r.json())
+            .then(data => {
+                messagesCache[uuid] = data.messages || [];
+                renderMessages(uuid);
+            })
+            .catch(e => console.error('[chat] fetchMessages', e));
+        });
+    }
+
+    // Extrait l'UUID de l'expéditeur peu importe comment le serveur l'a nommé
+    function getMsgAuthorUuid(m) {
+        return m.from_uuid || m.from || m.author || m.sender_uuid;
+    }
+
+    function getSenderName(uuid) {
+        const myU = getMyUuid();
+        const authorUuid = uuid || getMsgAuthorUuid(uuid); // au cas où on passerait tout l'objet
+        
+        // 1. Si on est en discussion privée, et que l'auteur n'est pas l'ami, C'EST FORCÉMENT MOI.
+        if (activeChatUuid && authorUuid !== activeChatUuid) {
+            return "Moi";
+        }
+        
+        // 2. Si on a mon UUID et que ça correspond, c'est moi
+        if (myU && authorUuid === myU) {
+            return "Moi";
+        }
+        
+        // 3. Sinon, c'est l'ami
+        const friend = allFriends.find(f => f.uuid === authorUuid);
+        return friend ? friend.username : "Ami";
+    }
+
+    function getSenderAvatar(uuid) {
+        const myU = getMyUuid();
+        const authorUuid = uuid || getMsgAuthorUuid(uuid);
+        
+        // Si ce n'est pas l'ami actif, c'est moi
+        if (activeChatUuid && authorUuid !== activeChatUuid) {
+            if (myU) return 'https://mc-heads.net/avatar/' + encodeURIComponent(myU) + '/24';
+            return 'https://mc-heads.net/avatar/char/24'; // Tête par défaut
+        }
+        
+        // Sinon c'est l'ami
+        const friend = allFriends.find(f => f.uuid === authorUuid);
+        if (friend) return friend.avatarUrl;
+        
+        return 'https://mc-heads.net/avatar/' + encodeURIComponent(authorUuid || 'char') + '/24';
+    }
+
+    function renderMessages(uuid) {
+        if (activeChatUuid !== uuid) return;
+        const container = document.getElementById('chatMessages');
+        const msgs = messagesCache[uuid] || [];
+        container.innerHTML = '';
+
+        msgs.forEach(function(m) {
+            container.appendChild(buildBubble(m));
+        });
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function buildBubble(m) {
+        const authorUuid = getMsgAuthorUuid(m);
+        const myU = getMyUuid();
+        
+        // Déduction infaillible : si l'auteur n'est pas l'ami, c'est moi
+        let mine = false;
+        if (activeChatUuid) {
+            mine = (authorUuid !== activeChatUuid);
+        } else if (myU) {
+            mine = (authorUuid === myU);
+        }
+
+        const row = document.createElement('div');
+        row.className = 'chat-bubble-row ' + (mine ? 'mine' : 'theirs');
+        row.dataset.id = m.id;
+
+        // Conteneur pour le texte (nom + bulle + heure)
+        const contentWrapper = document.createElement('div');
+        contentWrapper.className = 'chat-bubble-content';
+
+        // Affichage du nom de l'expéditeur
+        const author = document.createElement('div');
+        author.className = 'chat-bubble-author';
+        author.textContent = getSenderName(authorUuid);
+        contentWrapper.appendChild(author);
+
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-bubble';
+        bubble.textContent = m.content;
+        contentWrapper.appendChild(bubble);
+
+        const meta = document.createElement('div');
+        meta.className = 'chat-meta';
+        meta.textContent = formatTime(m.sent_at) + (m.edited_at ? ' · modifié' : '');
+        contentWrapper.appendChild(meta);
+
+        if (mine) {
+            const actions = document.createElement('div');
+            actions.className = 'chat-bubble-actions';
+            actions.innerHTML = `
+                <button onclick="startEditMessage(${m.id})">Modifier</button>
+                <button onclick="deleteMessage(${m.id})">Supprimer</button>
+            `;
+            contentWrapper.appendChild(actions);
+        }
+
+        // Avatar de l'expéditeur
+        const avatarUrl = getSenderAvatar(authorUuid);
+        const avatar = document.createElement('img');
+        avatar.className = 'chat-bubble-avatar';
+        avatar.src = avatarUrl;
+        avatar.alt = '';
+
+        row.appendChild(avatar);
+        row.appendChild(contentWrapper);
+
+        return row;
+    }
+
+    function formatTime(ts) {
+        const d = new Date(ts);
+        return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+    }
+
+    function escapeHtml(s) {
+        const div = document.createElement('div');
+        div.textContent = s || '';
+        return div.innerHTML;
+    }
+
+    window.sendChatMessage = function() {
+        if (!activeChatUuid) return;
+        const input = document.getElementById('chatInput');
+        const content = input.value.trim();
+        if (!content) return;
+        input.value = '';
+        input.disabled = true;
+
+        window.getMcToken().then(function(token) {
+            fetch(SERVER_URL + '/api/messages', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ to: activeChatUuid, content: content })
+            })
+            .then(r => r.json())
+            .then(data => {
+                input.disabled = false;
+                if (data.ok) {
+                    if (!messagesCache[activeChatUuid]) messagesCache[activeChatUuid] = [];
+                    
+                    // ON FORCE L'IDENTITÉ ICI pour être sûr que le script local le reconnaisse comme "Moi"
+                    const myU = getMyUuid();
+                    if (myU && data.message) {
+                        data.message.from_uuid = myU;
+                    }
+                    
+                    messagesCache[activeChatUuid].push(data.message);
+                    renderMessages(activeChatUuid);
+                }
+            })
+            .catch(e => { input.disabled = false; console.error('[chat] send failed', e); });
+        });
+    };
+
+    function handleIncomingMessage(msg, fromUser) {
+        let messageObj = msg.message || msg;
+        
+        // Si le websocket donne l'auteur (fromUser), on l'injecte
+        if (fromUser && !messageObj.from_uuid) {
+            messageObj.from_uuid = fromUser;
+        }
+        
+        const authorUuid = getMsgAuthorUuid(messageObj);
+        const myU = getMyUuid();
+        
+        // Déduire l'autre personne de la conversation
+        let otherUuid = activeChatUuid; // Par défaut, on suppose que ça vient de l'ami actif
+        
+        if (authorUuid) {
+            // Si je suis l'auteur, l'autre est le destinataire
+            if (myU && authorUuid === myU) {
+                otherUuid = messageObj.to_uuid || messageObj.to || activeChatUuid;
+            } 
+            // Si l'auteur n'est pas moi, l'autre est l'auteur
+            else {
+                otherUuid = authorUuid;
+            }
+        }
+
+        if (!messagesCache[otherUuid]) messagesCache[otherUuid] = [];
+        messagesCache[otherUuid].push(messageObj);
+
+        if (activeChatUuid === otherUuid) {
+            renderMessages(otherUuid);
+        } else if (!myU || authorUuid !== myU) {
+            // Si ça ne vient pas de moi, on incrémente les non-lus
+            unreadCounts[otherUuid] = (unreadCounts[otherUuid] || 0) + 1;
+            renderChatFriends();
+        }
+    }
+
+    function handleEditedMessage(msg) {
+        const authorUuid = getMsgAuthorUuid(msg);
+        const myU = getMyUuid();
+        let uuid = (myU && authorUuid === myU) ? (msg.to_uuid || msg.to) : authorUuid;
+        if (!uuid) uuid = activeChatUuid;
+
+        const cache = messagesCache[uuid];
+        if (!cache) return;
+        const idx = cache.findIndex(m => m.id === msg.id);
+        if (idx !== -1) {
+            cache[idx] = msg;
+            if (activeChatUuid === uuid) renderMessages(uuid);
+        }
+    }
+
+    function handleDeletedMessage(id) {
+        for (const uuid in messagesCache) {
+            const cache = messagesCache[uuid];
+            const idx = cache.findIndex(m => m.id === id);
+            if (idx !== -1) {
+                cache.splice(idx, 1);
+                if (activeChatUuid === uuid) renderMessages(uuid);
+                break;
+            }
+        }
+    }
+
+    window.startEditMessage = function(id) {
+        const row = document.querySelector('.chat-bubble-row[data-id="' + id + '"]');
+        if (!row) return;
+        const bubble = row.querySelector('.chat-bubble');
+        const original = bubble.textContent;
+
+        const input = document.createElement('input');
+        input.className = 'chat-edit-input';
+        input.value = original;
+        bubble.replaceWith(input);
+        input.focus();
+        input.setSelectionRange(input.value.length, input.value.length);
+
+        function commit() {
+            const newContent = input.value.trim();
+            if (!newContent || newContent === original) { cancel(); return; }
+            window.getMcToken().then(function(token) {
+                fetch(SERVER_URL + '/api/messages/' + id, {
+                    method: 'PATCH',
+                    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content: newContent })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.ok) {
+                        const cache = messagesCache[activeChatUuid] || [];
+                        const idx = cache.findIndex(m => m.id === id);
+                        if (idx !== -1) cache[idx] = data.message;
+                        renderMessages(activeChatUuid);
+                    } else cancel();
+                })
+                .catch(() => cancel());
+            });
+        }
+
+        function cancel() {
+            renderMessages(activeChatUuid);
+        }
+
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); commit(); }
+            if (e.key === 'Escape') { e.preventDefault(); cancel(); }
+        });
+        input.addEventListener('blur', commit);
+    };
+
+    window.deleteMessage = function(id) {
+        window.getMcToken().then(function(token) {
+            fetch(SERVER_URL + '/api/messages/' + id, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(r => r.json())
+            .then(data => { if (data.ok) handleDeletedMessage(id); })
+            .catch(e => console.error('[chat] delete failed', e));
+        });
+    };
+
+})();
+</script>

@@ -1,0 +1,19 @@
+[package]
+name = "ceroclient-bootstrapper"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ureq = { version = "2", features = ["tls"] }
+sha2 = "0.10"
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+
+[target.'cfg(windows)'.dependencies]
+zip = { version = "0.6", default-features = true, features = ["deflate"] }
+
+[profile.release]
+opt-level = "z"
+strip = true
+lto = true
+codegen-units = 1
+panic = "abort"

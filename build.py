@@ -1,35 +1,43 @@
-import subprocess
-import sys
+#!/usr/bin/env python3
 import os
+import sys
+import time
 
-print("/---------- CeroClient  Builder ----------\\")
-print("| Choose OS :                             |")
-print("| (0) Linux                               |")
-print("| (1) Windows                             |")
-print("\\-----------------------------------------/")
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "tools", "build"))
 
-choice = input("OS : ").strip().lower()
+from logger import step, ok, info, warn_, fail_, C_BOLD, C_GREEN, C_RESET
+import check_deps
+import prepare_dirs
+import build_agent
+import package_assets
+import build_launcher
+import finalize
 
-project_dir = os.getcwd()
+def main():
+    start_time = time.time()
+    
+    step("CeroClient Linux Build Pipeline")
+    
+    try:
+        check_deps.run()
+        
+        prepare_dirs.run()
+        
+        build_agent.run()
+        
+        package_assets.run()
+        
+        build_launcher.run()
+        
+        finalize.run()
+        
+        duration = time.time() - start_time
+        print(f"\n{C_BOLD}{C_GREEN}Build finished successfully in {duration:.2f}s !{C_RESET}\n")
+        
+    except SystemExit as e:
+        sys.exit(e.code)
+    except Exception as e:
+        fail_(f"Unexpected error: {e}")
 
-if choice not in ("linux", "windows"):
-    print("[ERROR] Invalid operating system")
-    sys.exit(1)
-
-os.chdir(project_dir)
-
-if choice == "windows":
-    env = os.environ.copy()
-    env["GOOS"] = "windows"
-    env["GOARCH"] = "amd64"
-    print("[INFO] Building CeroClient for Windows...")
-    subprocess.run(["npx", "electron-builder", "--win", "dir"], env=env)
-
-elif choice == "linux":
-    env = os.environ.copy()
-    env["GOOS"] = "linux"
-    env["GOARCH"] = "amd64"
-    print("[INFO] Building CeroClient for Linux...")
-    subprocess.run(["npx", "electron-builder", "--linux", "dir"], env=env)
-
-print("[INFO] Build finished!")
+if __name__ == "__main__":
+    main()

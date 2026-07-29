@@ -1,0 +1,62 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;600;800&display=swap");
+
+* { 
+  font-family: "Plus Jakarta Sans", sans-serif;
+}
+
+html, body {
+  -webkit-app-region: drag;
+  app-region: drag;
+  overflow: hidden;
+  margin: 0;
+  height: 100vh;
+}
+
+a, button, input, select, textarea, canvas, img, 
+.ms-btn, .wc-btn, .dd-item, .dd-tab, .nodrag, .card,
+#closeMenu, #skinViewer, .friends-card {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+:root {
+  --bg-color: #050505;
+  --text-main: #ffffff;
+  --text-muted: #a1a1aa;
+  --border-color: rgba(255, 255, 255, 0.05);
+  --card-bg: #0f0f0f;
+  --hover-bg: rgba(255, 255, 255, 0.05);
+}
+
+#grainCanvas {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.02;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-up { animation: fadeUp 0.8s cubic-bezier(0.19, 1, 0.22, 1) both; }
+.delay-1 { animation-delay: 0.15s; }
+.delay-2 { animation-delay: 0.3s; }
+
+.ms-btn {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+
+.ms-btn:hover {
+  background-color: var(--hover-bg);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+.ms-btn:active {
+  transform: translateY(0);
+}

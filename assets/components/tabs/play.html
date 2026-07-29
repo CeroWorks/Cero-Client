@@ -1,0 +1,65 @@
+            <div id="appTab-jouer" class="app-tab-panel flex-1 flex flex-col overflow-hidden">
+
+                <div class="flex flex-1 gap-4 overflow-hidden relative">
+                    
+                    <section class="fade-up delay-2 flex-1 flex flex-col min-w-0">
+                        <div id="skinContainer" class="card rounded-2xl flex-1 overflow-hidden relative">
+                            <canvas id="skinViewer" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
+                            <div class="absolute bottom-4 left-4 z-10 pointer-events-none">
+                                <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-40">Version</p>
+                                <p id="selectedVersionDisplay" class="text-sm font-bold mt-0.5">—</p>
+                            </div>
+                            <div class="play-overlay">
+                                <div class="play-group" id="playGroup">
+                                    <button id="launchBtn" class="play-main" onclick="launchGame()">▶ Jouer</button>
+                                    <button class="play-arrow nodrag" id="playArrowBtn" onclick="toggleVersionDropdown(event)" aria-label="Choisir version">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                            <path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <button id="killBtn" class="kill-btn" style="display:none" onclick="killGame()">Fermer</button>
+                            </div>
+                        </div>
+                        <div class="version-dropdown" id="versionDropdown">
+                            <div class="dd-tabs">
+                                <button class="dd-tab" onclick="setFilter('all')"      id="tab-all">Tout</button>
+                                <button class="dd-tab active" onclick="setFilter('release')" id="tab-release">Release</button>
+                                <button class="dd-tab" onclick="setFilter('snapshot')" id="tab-snapshot">Snap</button>
+                                <button class="dd-tab" onclick="setFilter('beta')"     id="tab-beta">Beta</button>
+                                <button class="dd-tab" onclick="setFilter('alpha')"    id="tab-alpha">Alpha</button>
+                            </div>
+                            <input id="ddSearch" type="text" placeholder="Rechercher..." oninput="renderDropdown()">
+                            <div id="ddList" class="dd-list"></div>
+                        </div>
+                    </section>
+
+                    <aside class="card rounded-2xl friends-card flex flex-col w-64 fade-up delay-3 nodrag overflow-hidden">
+                        <div class="friends-header">
+                            <div>
+                                <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60">Amis</p>
+                                <p class="text-sm font-bold mt-0.5"><span id="friendsOnlineCount">0</span> en ligne</p>
+                            </div>
+                            <div class="friends-header-actions">
+                                <button class="wc-btn" aria-label="Demandes" onclick="openRequestsModal()" style="position:relative">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    <span id="reqBadge" class="req-badge hidden">0</span>
+                                </button>
+                                <button class="wc-btn" aria-label="Ajouter un ami" onclick="openAddFriendModal()">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <line x1="12" y1="5" x2="12" y2="19" stroke-linecap="round"/>
+                                        <line x1="5" y1="12" x2="19" y2="12" stroke-linecap="round"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="friendsList" class="friends-list flex-1 overflow-y-auto"></div>
+                    </aside>
+
+                    <p id="launchStatus" class="absolute bottom-1 left-0 text-[10px] text-[var(--text-muted)] h-3"></p>
+                    
+                </div>
+
+            </div>
