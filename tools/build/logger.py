@@ -1,5 +1,9 @@
 import sys
 
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding='utf-8')
+    sys.stderr.reconfigure(encoding='utf-8')
+
 C_BOLD = "\033[1m"
 C_DIM = "\033[2m"
 C_GREEN = "\033[32m"

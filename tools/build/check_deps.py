@@ -1,18 +1,24 @@
 import shutil
 import subprocess
+import sys
 import os
 from logger import step, ok, info, warn_, fail_
 
 def run():
     step("Checking dependencies...")
     
-    for cmd in ["python3", "g++", "pkg-config"]:
+    is_windows = (sys.platform == "win32")
+    
+    cmds = ["python", "g++"] if is_windows else ["python3", "g++", "pkg-config"]
+    
+    for cmd in cmds:
         if not shutil.which(cmd):
             fail_(f"{cmd} is required.")
             
-    if subprocess.run(["pkg-config", "--exists", "webkit2gtk-4.1"]).returncode != 0:
-        fail_("webkit2gtk-4.1 is missing. Install with: sudo apt install libwebkit2gtk-4.1-dev")
-    
+    if not is_windows:
+        if subprocess.run(["pkg-config", "--exists", "webkit2gtk-4.1"]).returncode != 0:
+            fail_("webkit2gtk-4.1 is missing. Install with: sudo apt install libwebkit2gtk-4.1-dev")
+            
     webview_path = os.path.join("third_party", "webview")
     if not os.path.isdir(webview_path):
         info("WebView library not found. Downloading...")
