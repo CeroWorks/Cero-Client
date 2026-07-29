@@ -123,7 +123,13 @@ obj/%.o: src/%.cpp
     ok("Makefile generated")
 
     info("Compiling launcher...")
-    make_cmd = "mingw32-make" if is_windows else "make"
+    if is_windows:
+        make_cmd = "mingw32-make"
+    elif "freebsd" in sys.platform:
+        make_cmd = "gmake"
+    else:
+        make_cmd = "make"
+        
     result = subprocess.run([make_cmd])
     
     if result.returncode != 0:

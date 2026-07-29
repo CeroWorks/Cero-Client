@@ -21,8 +21,8 @@ jobs:
         usesh: true
         prepare: |
           env IGNORE_OSVERSION=yes pkg update -f
-          env IGNORE_OSVERSION=yes pkg install -y python3 pkgconf webkit2-gtk_41 curl git openjdk17
-
+          env IGNORE_OSVERSION=yes pkg install -y python3 pkgconf webkit2-gtk_41 curl git openjdk17 gmake
+          
         run: |
           export PATH=$PATH:/usr/local/bin
           export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/libdata/pkgconfig
