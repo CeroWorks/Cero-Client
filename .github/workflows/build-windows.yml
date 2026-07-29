@@ -32,7 +32,6 @@ jobs:
           mingw-w64-x86_64-brotli
           mingw-w64-x86_64-zstd
           mingw-w64-x86_64-openssl
-          mingw-w64-x86_64-webview2
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -45,10 +44,18 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
+    - name: Download WebView2 SDK
+      shell: pwsh
+      run: |
+        Invoke-WebRequest -Uri "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2" -OutFile webview2.zip
+        Expand-Archive -Path webview2.zip -DestinationPath webview2_sdk
+
     - name: Run CeroClient Build Pipeline
       shell: msys2 {0}
       env:
         PYTHONUTF8: "1"
+        WEBVIEW2_INCLUDE: ${{ github.workspace }}\webview2_sdk\build\native\include
+        WEBVIEW2_LIB: ${{ github.workspace }}\webview2_sdk\build\native\x64
       run: python build.py
 
     - name: Upload CeroClient Binary
