@@ -43,6 +43,7 @@
   #include <ws2tcpip.h>
   #include <windows.h>
   #include <wininet.h>
+  #include <shellapi.h>
   #pragma comment(lib, "ws2_32.lib")
   #pragma comment(lib, "wininet.lib")
   #define PATH_SEP "\\"
