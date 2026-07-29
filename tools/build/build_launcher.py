@@ -6,7 +6,7 @@ from logger import step, ok, info, fail_
 
 def run():
     is_windows = (sys.platform == "win32")
-    step(f"Building local launcher ({'windows' if is_windows else 'linux'})")
+    step(f"Building local launcher ({'windows' if is_windows else 'linux/bsd'})")
 
     src_dir = Path("src")
     sources = sorted([str(p) for p in src_dir.rglob("*") if p.suffix in [".c", ".cpp"]])
@@ -42,12 +42,11 @@ def run():
             curl_static_deps = "-Wl,--start-group -l:libcurl.a -l:libssh2.a -l:libnghttp2.a -l:libnghttp3.a -l:libngtcp2.a -l:libngtcp2_crypto_libressl.a -l:libssl.a -l:libcrypto.a -l:libz.a -l:libzstd.a -l:libbrotlidec.a -l:libbrotlicommon.a -l:libpsl.a -Wl,--end-group"
         else:
             curl_static_deps = "-lcurl -lssl -lcrypto -lssh2 -lnghttp2 -lnghttp3 -lz -lzstd -lbrotlidec -lbrotlicommon -lpsl -lws2_32 -lwldap32 -lcrypt32 -lnormaliz -lsecur32 -liphlpapi"
-        
+            
         win_libs = f"{lib_flags} -lws2_32 -lwldap32 -lcrypt32 -lnormaliz -lsecur32 -liphlpapi -l:WebView2Loader.dll.lib -lole32 -lshlwapi -lversion -ladvapi32 -luser32 -lshell32 -lgdi32 -static-libgcc -static-libstdc++ -ldwmapi -lwininet -lbcrypt -Wl,--defsym=fstat64=_fstat64 -s -Wl,-subsystem,windows"
         
-        makefile_content = f"""
-.RECIPEPREFIX = >
-CC       = gcc
+        TAB = "\t"
+        makefile_content = f"""CC       = gcc
 CXX      = g++
 CFLAGS   = -O2 -std=c11 {inc_flags} {win_defs} -Wno-unused-function
 CXXFLAGS = -O2 -std=c++17 {inc_flags} {win_defs} -Wno-unused-function
@@ -57,19 +56,24 @@ TARGET   = CeroClient.exe
 OBJS     = {objs_str}
 
  $(TARGET): $(OBJS)
->$(CXX) -o $(TARGET) $(OBJS) $(LDFLAGS)
+{TAB}$(CXX) -o $(TARGET) $(OBJS) $(LDFLAGS)
 
 obj/%.o: src/%.c
->@mkdir -p $(dir $@)
->$(CC) $(CFLAGS) -c $< -o $@
+{TAB}@mkdir -p $(dir $@)
+{TAB}$(CC) $(CFLAGS) -c $< -o $@
 
 obj/%.o: src/%.cpp
->@mkdir -p $(dir $@)
->$(CXX) $(CXXFLAGS) -c $< -o $@
+{TAB}@mkdir -p $(dir $@)
+{TAB}$(CXX) $(CXXFLAGS) -c $< -o $@
 """
     else:
+        env = os.environ.copy()
+        if "freebsd" in sys.platform:
+            bsd_paths = "/usr/local/lib/pkgconfig:/usr/local/libdata/pkgconfig"
+            env["PKG_CONFIG_PATH"] = bsd_paths + ":" + env.get("PKG_CONFIG_PATH", "")
+
         webkit_pkg = "webkit2gtk-4.1"
-        if subprocess.run(["pkg-config", "--exists", webkit_pkg]).returncode != 0:
+        if subprocess.run(["pkg-config", "--exists", webkit_pkg], env=env).returncode != 0:
             webkit_pkg = "webkit2gtk-4.0"
             info("Using webkit2gtk-4.0")
         else:
@@ -79,22 +83,21 @@ obj/%.o: src/%.cpp
         tray_ldflags = ""
         tray_define = ""
 
-        if subprocess.run(["pkg-config", "--exists", "ayatana-appindicator3-0.1"]).returncode == 0:
-            tray_cflags = subprocess.check_output(["pkg-config", "--cflags", "ayatana-appindicator3-0.1"]).decode().strip()
-            tray_ldflags = subprocess.check_output(["pkg-config", "--libs", "ayatana-appindicator3-0.1"]).decode().strip()
+        if subprocess.run(["pkg-config", "--exists", "ayatana-appindicator3-0.1"], env=env).returncode == 0:
+            tray_cflags = subprocess.check_output(["pkg-config", "--cflags", "ayatana-appindicator3-0.1"], env=env).decode().strip()
+            tray_ldflags = subprocess.check_output(["pkg-config", "--libs", "ayatana-appindicator3-0.1"], env=env).decode().strip()
             tray_define = "-DHAVE_AYATANA"
             info("Tray: Ayatana AppIndicator detected")
-        elif subprocess.run(["pkg-config", "--exists", "appindicator3-0.1"]).returncode == 0:
-            tray_cflags = subprocess.check_output(["pkg-config", "--cflags", "appindicator3-0.1"]).decode().strip()
-            tray_ldflags = subprocess.check_output(["pkg-config", "--libs", "appindicator3-0.1"]).decode().strip()
+        elif subprocess.run(["pkg-config", "--exists", "appindicator3-0.1"], env=env).returncode == 0:
+            tray_cflags = subprocess.check_output(["pkg-config", "--cflags", "appindicator3-0.1"], env=env).decode().strip()
+            tray_ldflags = subprocess.check_output(["pkg-config", "--libs", "appindicator3-0.1"], env=env).decode().strip()
             tray_define = "-DHAVE_APPINDICATOR"
             info("Tray: AppIndicator detected")
         else:
             info("Tray: NOT detected - disabled")
 
-        makefile_content = f"""
-.RECIPEPREFIX = >
-CC       = cc
+        TAB = "\t"
+        makefile_content = f"""CC       = cc
 CXX      = c++
 CFLAGS   = -O2 -Iinclude -Ithird_party/webview/core/include {tray_define} {tray_cflags} $(shell pkg-config --cflags libcurl)
 CXXFLAGS = -O2 -std=c++17 -Iinclude -Ithird_party/webview/core/include $(shell pkg-config --cflags gtk+-3.0 {webkit_pkg} libcurl)
@@ -104,15 +107,15 @@ TARGET   = CeroClient
 OBJS     = {objs_str}
 
  $(TARGET): $(OBJS)
->$(CXX) -o $(TARGET) $(OBJS) $(LDFLAGS)
+{TAB}$(CXX) -o $(TARGET) $(OBJS) $(LDFLAGS)
 
 obj/%.o: src/%.c
->@mkdir -p $(dir $@)
->$(CC) $(CFLAGS) -c $< -o $@
+{TAB}@mkdir -p $(dir $@)
+{TAB}$(CC) $(CFLAGS) -c $< -o $@
 
 obj/%.o: src/%.cpp
->@mkdir -p $(dir $@)
->$(CXX) $(CXXFLAGS) -c $< -o $@
+{TAB}@mkdir -p $(dir $@)
+{TAB}$(CXX) $(CXXFLAGS) -c $< -o $@
 """
 
     with open("Makefile", "w") as f:
