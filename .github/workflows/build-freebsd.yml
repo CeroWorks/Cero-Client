@@ -25,6 +25,11 @@ jobs:
 
         run: |
           export PATH=$PATH:/usr/local/bin
+          export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/libdata/pkgconfig
+          
+          echo "=== Recherche du module WebKit dans pkg-config ==="
+          pkg-config --list-all | grep webkit
+          echo "==================================================="
           
           python3 build.py
           
