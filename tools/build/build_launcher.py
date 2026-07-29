@@ -8,6 +8,8 @@ def run():
     is_windows = (sys.platform == "win32")
     step(f"Building local launcher ({'windows' if is_windows else 'linux/bsd'})")
 
+    env = os.environ.copy()
+
     src_dir = Path("src")
     sources = sorted([str(p) for p in src_dir.rglob("*") if p.suffix in [".c", ".cpp"]])
     
@@ -67,7 +69,6 @@ obj/%.o: src/%.cpp
 {TAB}$(CXX) $(CXXFLAGS) -c $< -o $@
 """
     else:
-        env = os.environ.copy()
         pkg_config_path_export = ""
         if "freebsd" in sys.platform:
             bsd_paths = "/usr/local/lib/pkgconfig:/usr/local/libdata/pkgconfig"

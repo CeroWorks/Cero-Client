@@ -22,7 +22,8 @@ jobs:
         prepare: |
           env IGNORE_OSVERSION=yes pkg update -f
           env IGNORE_OSVERSION=yes pkg install -y python3 pkgconf webkit2-gtk_41 curl git openjdk17 gmake bzip2
-          
+          printf "Name: bzip2\nDescription: bzip2\nVersion: 1.0.8\nLibs: -lbz2\n" > /usr/local/libdata/pkgconfig/bzip2.pc
+
         run: |
           export PATH=$PATH:/usr/local/bin
           export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/libdata/pkgconfig
