@@ -21,3 +21,6 @@ deploy.pl
 *.snap
 *.exe
 *.blockmap
+
+__pycache__/
+*.pyc
