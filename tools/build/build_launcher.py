@@ -21,7 +21,7 @@ def run():
 
     objs = []
     for s in sources:
-        obj = s.replace("src/", "obj/").replace(".cpp", ".o").replace(".c", ".o")
+        obj = s.replace("src/", "obj/").replace(".cpp", ".o").replace(".c", ".o").replace(".mm", ".o")
         objs.append(obj)
     objs_str = " ".join(objs)
 
