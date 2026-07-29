@@ -22,14 +22,14 @@ jobs:
         prepare: |
           env IGNORE_OSVERSION=yes pkg update -f
           env IGNORE_OSVERSION=yes pkg install -y python3 pkgconf webkit2-gtk_41 curl git openjdk17
-          
+
         run: |
           export PATH=$PATH:/usr/local/bin
           
           python3 build.py
           
           mkdir -p release
-          cp bin/linux/client/CeroClient release/CeroClient-freebsd-x86_64
+          cp bin/freebsd/client/CeroClient release/CeroClient-freebsd-x86_64
           cp bin/assets/assets.dat release/
 
     - name: Upload CeroClient Binary

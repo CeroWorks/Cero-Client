@@ -19,6 +19,13 @@ def run():
             fail_(f"{cmd} is required.")
             
     if not is_windows:
+        pkg_config_path = os.environ.get("PKG_CONFIG_PATH", "")
+        freebsd_paths = "/usr/local/lib/pkgconfig:/usr/local/libdata/pkgconfig"
+        if not pkg_config_path:
+            os.environ["PKG_CONFIG_PATH"] = freebsd_paths
+        elif freebsd_paths not in pkg_config_path:
+            os.environ["PKG_CONFIG_PATH"] = pkg_config_path + ":" + freebsd_paths
+
         webkit_found = False
         if subprocess.run(["pkg-config", "--exists", "webkit2gtk-4.1"]).returncode == 0:
             webkit_found = True
@@ -26,7 +33,7 @@ def run():
             webkit_found = True
             
         if not webkit_found:
-            fail_("webkit2gtk is missing. Install webkit2gtk-4.1 (Linux) or webkit2-gtk3 (FreeBSD)")
+            fail_("webkit2gtk is missing. Install webkit2gtk-4.1 (Linux) or webkit2-gtk_41 (FreeBSD)")
             
     webview_path = os.path.join("third_party", "webview")
     if not os.path.isdir(webview_path):
