@@ -9,4 +9,4 @@ Please select your preferred language for the full documentation:
 
 ---
 
-© 2025 Cero Games. All rights reserved.
+© 2025-2026 Cero Studio. All rights reserved.

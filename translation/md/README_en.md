@@ -76,4 +76,4 @@ The code source is available for reading, auditing, and personal use. However, m
 
 ---
 
-© 2025-2026 Cero Games. All rights reserved.
+© 2025-2026 Cero Studio. All rights reserved.
