@@ -1,0 +1,46 @@
+name: CeroClient Build CI (Linux)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential pkg-config libwebkit2gtk-4.1-dev libcurl4-openssl-dev
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Set up JDK 17 (for Minecraft Agent)
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Run CeroClient Build Pipeline
+      run: python3 build.py
+
+    - name: Upload CeroClient Binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: CeroClient-linux-binaries
+        path: bin/linux/client/CeroClient
+        
+    - name: Upload Assets
+      uses: actions/upload-artifact@v4
+      with:
+        name: CeroClient-assets
+        path: bin/assets/assets.dat
