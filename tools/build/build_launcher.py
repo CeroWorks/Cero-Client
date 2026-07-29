@@ -68,6 +68,13 @@ obj/%.o: src/%.cpp
 >$(CXX) $(CXXFLAGS) -c $< -o $@
 """
     else:
+        webkit_pkg = "webkit2gtk-4.1"
+        if subprocess.run(["pkg-config", "--exists", webkit_pkg]).returncode != 0:
+            webkit_pkg = "webkit2gtk-4.0"
+            info("Using webkit2gtk-4.0")
+        else:
+            info("Using webkit2gtk-4.1")
+
         tray_cflags = ""
         tray_ldflags = ""
         tray_define = ""
@@ -83,15 +90,15 @@ obj/%.o: src/%.cpp
             tray_define = "-DHAVE_APPINDICATOR"
             info("Tray: AppIndicator detected")
         else:
-            info("Tray: NOT detected (neither Ayatana nor AppIndicator) - disabled")
+            info("Tray: NOT detected - disabled")
 
         makefile_content = f"""
 .RECIPEPREFIX = >
 CC       = cc
 CXX      = c++
 CFLAGS   = -O2 -Iinclude -Ithird_party/webview/core/include {tray_define} {tray_cflags} $(shell pkg-config --cflags libcurl)
-CXXFLAGS = -O2 -std=c++17 -Iinclude -Ithird_party/webview/core/include $(shell pkg-config --cflags gtk+-3.0 webkit2gtk-4.1 libcurl)
-LDFLAGS  = $(shell pkg-config --libs gtk+-3.0 webkit2gtk-4.1 libcurl) {tray_ldflags}
+CXXFLAGS = -O2 -std=c++17 -Iinclude -Ithird_party/webview/core/include $(shell pkg-config --cflags gtk+-3.0 {webkit_pkg} libcurl)
+LDFLAGS  = $(shell pkg-config --libs gtk+-3.0 {webkit_pkg} libcurl) {tray_ldflags}
 
 TARGET   = CeroClient
 OBJS     = {objs_str}

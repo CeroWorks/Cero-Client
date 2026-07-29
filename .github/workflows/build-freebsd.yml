@@ -20,7 +20,7 @@ jobs:
         release: 14.2
         usesh: true
         prepare: |
-          pkg install -y python3 g++ pkgconf webkit2-gtk3 curl git openjdk17
+          pkg install -y python3 pkgconf webkit2-gtk3 curl git openjdk17
           
         run: |
           export PATH=$PATH:/usr/local/bin
