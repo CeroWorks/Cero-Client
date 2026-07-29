@@ -33,11 +33,19 @@ jobs:
     - name: Run CeroClient Build Pipeline
       run: python3 build.py
 
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Run CeroClient Build Pipeline
+      run: python3 build.py
+
     - name: Upload CeroClient Binary
       uses: actions/upload-artifact@v4
       with:
         name: CeroClient-linux-binaries
-        path: bin/linux/client/CeroClient
+        path: |
+          bin/linux/client/CeroClient
+          bin/linux/bootstrapper/ceroclient-bootstrapper
         
     - name: Upload Assets
       uses: actions/upload-artifact@v4

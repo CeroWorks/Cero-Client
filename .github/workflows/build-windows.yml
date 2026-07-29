@@ -58,8 +58,21 @@ jobs:
         WEBVIEW2_LIB: ${{ github.workspace }}\webview2_sdk\build\native\x64
       run: python build.py
 
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Run CeroClient Build Pipeline
+      shell: msys2 {0}
+      env:
+        PYTHONUTF8: "1"
+        WEBVIEW2_INCLUDE: ${{ github.workspace }}\webview2_sdk\build\native\include
+        WEBVIEW2_LIB: ${{ github.workspace }}\webview2_sdk\build\native\x64
+      run: python build.py
+
     - name: Upload CeroClient Binary
       uses: actions/upload-artifact@v4
       with:
         name: CeroClient-windows-binaries
-        path: bin/windows/client/CeroClient.exe
+        path: |
+          bin/windows/client/CeroClient.exe
+          bin/windows/bootstrapper/ceroclient-bootstrapper.exe

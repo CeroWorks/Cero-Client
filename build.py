@@ -9,6 +9,7 @@ from logger import step, ok, info, warn_, fail_, C_BOLD, C_GREEN, C_RESET
 import check_deps
 import prepare_dirs
 import build_agent
+import build_bootstrapper
 import package_assets
 import build_launcher
 import finalize
@@ -16,19 +17,15 @@ import finalize
 def main():
     start_time = time.time()
     
-    step(f"CeroClient Build Pipeline ({sys.platform})")
+    step("CeroClient Build Pipeline")
     
     try:
         check_deps.run()
-        
         prepare_dirs.run()
-        
         build_agent.run()
-        
+        build_bootstrapper.run()
         package_assets.run()
-        
         build_launcher.run()
-        
         finalize.run()
         
         duration = time.time() - start_time

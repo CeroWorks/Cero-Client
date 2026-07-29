@@ -21,21 +21,16 @@ jobs:
         usesh: true
         prepare: |
           env IGNORE_OSVERSION=yes pkg update -f
-          env IGNORE_OSVERSION=yes pkg install -y python3 pkgconf webkit2-gtk_41 curl git openjdk17 gmake bzip2
+          env IGNORE_OSVERSION=yes pkg install -y python3 pkgconf webkit2-gtk_41 curl git openjdk17 gmake bzip2 rust
           printf "Name: bzip2\nDescription: bzip2\nVersion: 1.0.8\nLibs: -lbz2\n" > /usr/local/libdata/pkgconfig/bzip2.pc
-
+          
         run: |
           export PATH=$PATH:/usr/local/bin
           export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/libdata/pkgconfig
-          
-          echo "=== Recherche du module WebKit dans pkg-config ==="
-          pkg-config --list-all | grep webkit
-          echo "==================================================="
-          
           python3 build.py
-          
           mkdir -p release
           cp bin/freebsd/client/CeroClient release/CeroClient-freebsd-x86_64
+          cp bin/freebsd/bootstrapper/ceroclient-bootstrapper release/
           cp bin/assets/assets.dat release/
 
     - name: Upload CeroClient Binary
