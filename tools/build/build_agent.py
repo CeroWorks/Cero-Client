@@ -1,20 +1,28 @@
 import os
+import sys
 import glob
 import subprocess
 from logger import step, ok, info, warn_, fail_
 
 def find_java_home():
     java_home = os.environ.get("JAVA_HOME")
-    if java_home and os.path.isdir(java_home) and os.path.isfile(os.path.join(java_home, "bin", "java")):
-        return java_home
+    if java_home and os.path.isdir(java_home):
+        if sys.platform == "win32":
+            if os.path.isfile(os.path.join(java_home, "bin", "java.exe")):
+                return java_home
+        else:
+            if os.path.isfile(os.path.join(java_home, "bin", "java")):
+                return java_home
 
-    candidates = glob.glob("/usr/lib/jvm/java-*-openjdk-*") + glob.glob("/usr/lib/jvm/java-*-jdk-*")
-    for path in sorted(candidates):
-        if os.path.isfile(os.path.join(path, "bin", "java")):
-            return path
+    if sys.platform != "win32":
+        candidates = glob.glob("/usr/lib/jvm/java-*-openjdk-*") + glob.glob("/usr/lib/jvm/java-*-jdk-*")
+        for path in sorted(candidates):
+            if os.path.isfile(os.path.join(path, "bin", "java")):
+                return path
     return None
 
 def find_built_jar(agent_dir):
+    """Cherche le JAR final dans les dossiers de sortie standards de Gradle."""
     libs_dir = os.path.join(agent_dir, "build", "libs")
     if os.path.isdir(libs_dir):
         jars = glob.glob(os.path.join(libs_dir, "*.jar"))
@@ -59,11 +67,15 @@ def run():
     if not os.path.isdir(agent_dir):
         fail_("Agent directory not found.")
         
-    gradlew_path = os.path.join(agent_dir, "gradlew")
+    is_windows = (sys.platform == "win32")
+    gradlew_name = "gradlew.bat" if is_windows else "gradlew"
+    gradlew_path = os.path.join(agent_dir, gradlew_name)
+    
     if not os.path.exists(gradlew_path):
-        fail_(f"gradlew not found in {agent_dir}")
+        fail_(f"{gradlew_name} not found in {agent_dir}")
         
-    os.chmod(gradlew_path, 0o755)
+    if not is_windows:
+        os.chmod(gradlew_path, 0o755)
     
     jar_path = find_built_jar(agent_dir)
     if is_agent_up_to_date(agent_dir, jar_path):

@@ -16,7 +16,7 @@ import finalize
 def main():
     start_time = time.time()
     
-    step("CeroClient Linux Build Pipeline")
+    step(f"CeroClient Build Pipeline ({sys.platform})")
     
     try:
         check_deps.run()
