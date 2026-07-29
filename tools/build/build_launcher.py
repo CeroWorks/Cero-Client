@@ -26,15 +26,28 @@ def run():
 
     if is_windows:
         win_defs = "-D_WIN32 -DWIN32_LEAN_AND_MEAN -D_WINSOCKAPI_"
+        
+        webview2_inc = os.environ.get("WEBVIEW2_INCLUDE", "")
+        webview2_lib = os.environ.get("WEBVIEW2_LIB", "")
+        
+        inc_flags = "-Iinclude -Ithird_party/webview/core/include"
+        if webview2_inc:
+            inc_flags += f" -I{webview2_inc}"
+            
+        lib_flags = ""
+        if webview2_lib:
+            lib_flags += f" -L{webview2_lib}"
+        
         curl_static_deps = "-Wl,--start-group -l:libcurl.a -l:libssh2.a -l:libnghttp2.a -l:libnghttp3.a -l:libngtcp2.a -l:libngtcp2_crypto_libressl.a -l:libssl.a -l:libcrypto.a -l:libz.a -l:libzstd.a -l:libbrotlidec.a -l:libbrotlicommon.a -l:libpsl.a -Wl,--end-group"
-        win_libs = "-lws2_32 -lwldap32 -lcrypt32 -lnormaliz -lsecur32 -liphlpapi -lWebView2Loader -lole32 -lshlwapi -lversion -ladvapi32 -luser32 -lshell32 -lgdi32 -static-libgcc -static-libstdc++ -ldwmapi -lwininet -lbcrypt -Wl,--defsym=fstat64=_fstat64 -s -Wl,-subsystem,windows"
+        
+        win_libs = f"{lib_flags} -lws2_32 -lwldap32 -lcrypt32 -lnormaliz -lsecur32 -liphlpapi -l:WebView2Loader.dll.lib -lole32 -lshlwapi -lversion -ladvapi32 -luser32 -lshell32 -lgdi32 -static-libgcc -static-libstdc++ -ldwmapi -lwininet -lbcrypt -Wl,--defsym=fstat64=_fstat64 -s -Wl,-subsystem,windows"
         
         makefile_content = f"""
 .RECIPEPREFIX = >
 CC       = gcc
 CXX      = g++
-CFLAGS   = -O2 -std=c11 -Iinclude -Ithird_party/webview/core/include {win_defs} -Wno-unused-function
-CXXFLAGS = -O2 -std=c++17 -Iinclude -Ithird_party/webview/core/include {win_defs} -Wno-unused-function
+CFLAGS   = -O2 -std=c11 {inc_flags} {win_defs} -Wno-unused-function
+CXXFLAGS = -O2 -std=c++17 {inc_flags} {win_defs} -Wno-unused-function
 LDFLAGS  = {curl_static_deps} {win_libs}
 
 TARGET   = CeroClient.exe
