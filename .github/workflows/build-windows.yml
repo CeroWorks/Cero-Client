@@ -1,0 +1,54 @@
+name: CeroClient Build CI (Windows)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up MSYS2
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+        update: true
+        install: >-
+          git
+          make
+          mingw-w64-x86_64-gcc
+          mingw-w64-x86_64-pkg-config
+          mingw-w64-x86_64-curl
+          mingw-w64-x86_64-libssh2
+          mingw-w64-x86_64-nghttp2
+          mingw-w64-x86_64-libpsl
+          mingw-w64-x86_64-brotli
+          mingw-w64-x86_64-zstd
+          mingw-w64-x86_64-openssl
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Set up JDK 17 (for Minecraft Agent)
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Run CeroClient Build Pipeline
+      shell: msys2 {0}
+      run: python build.py
+
+    - name: Upload CeroClient Binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: CeroClient-windows-binaries
+        path: bin/windows/client/CeroClient.exe
