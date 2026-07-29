@@ -32,6 +32,7 @@ jobs:
           mingw-w64-x86_64-brotli
           mingw-w64-x86_64-zstd
           mingw-w64-x86_64-openssl
+          mingw-w64-x86_64-webview2
 
     - name: Set up Python
       uses: actions/setup-python@v5
