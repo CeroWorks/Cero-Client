@@ -9,6 +9,9 @@ def run():
     if sys.platform == "win32":
         binary_name = "CeroClient.exe"
         dest_dir = "bin/windows/client"
+    elif sys.platform == "darwin":
+        binary_name = "CeroClient"
+        dest_dir = "bin/macos/client"
     elif sys.platform.startswith("freebsd"):
         binary_name = "CeroClient"
         dest_dir = "bin/freebsd/client"

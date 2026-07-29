@@ -153,7 +153,6 @@ static void ceroclient_uri_scheme_cb(WebKitURISchemeRequest *request, gpointer u
 }
 #endif
 
-
 struct EvalData { webview_t w; char* js; };
 
 static void eval_dispatch_cb(webview_t, void* arg) {
@@ -206,6 +205,7 @@ extern "C" {
 
 void ui_terminate(void* w) { webview_terminate((webview_t)w); }
 
+#ifndef __APPLE__
 void ui_set_icon(void* w, const char* icon_path) {
     (void)icon_path;
 
@@ -239,9 +239,11 @@ void ui_set_icon(void* w, const char* icon_path) {
         assets_free_buffer(data);
     }
 }
+#endif
 
 void* ui_get_window(void* w) { return webview_get_window((webview_t)w); }
 
+#ifndef __APPLE__
 void ui_show_window(void* w) {
 #ifdef _WIN32
     HWND hwnd = (HWND)webview_get_window((webview_t)w);
@@ -315,6 +317,11 @@ void ui_drag_start(void* w) {
     gtk_window_begin_move_drag(win, 1, x, y, GDK_CURRENT_TIME);
 #endif
 }
+#endif
+
+#ifdef __APPLE__
+extern "C" void ui_macos_register_scheme(void* w);
+#endif
 
 void* ui_create(const char* title) {
     webview_t w = webview_create(0, nullptr);
@@ -324,6 +331,8 @@ void* ui_create(const char* title) {
 #if defined(__linux__) || defined(__BSD__)
     WebKitWebContext *ctx = webkit_web_context_get_default();
     webkit_web_context_register_uri_scheme(ctx, "cero", ceroclient_uri_scheme_cb, NULL, NULL);
+#elif defined(__APPLE__)
+    ui_macos_register_scheme(w);
 #endif
 
     return w;

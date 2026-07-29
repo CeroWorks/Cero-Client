@@ -50,14 +50,6 @@ jobs:
         Invoke-WebRequest -Uri "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2" -OutFile webview2.zip
         Expand-Archive -Path webview2.zip -DestinationPath webview2_sdk
 
-    - name: Run CeroClient Build Pipeline
-      shell: msys2 {0}
-      env:
-        PYTHONUTF8: "1"
-        WEBVIEW2_INCLUDE: ${{ github.workspace }}\webview2_sdk\build\native\include
-        WEBVIEW2_LIB: ${{ github.workspace }}\webview2_sdk\build\native\x64
-      run: python build.py
-
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
 

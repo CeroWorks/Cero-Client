@@ -727,14 +727,18 @@ static void get_exe_path(char *out, size_t sz) {
     if (n > 0) out[n] = '\0';
     else snprintf(out, sz, "./CeroClient");
 
+#elif defined(__APPLE__)
+    #include <mach-o/dyld.h>
+    uint32_t size = (uint32_t)sz;
+    if (_NSGetExecutablePath(out, &size) != 0)
+        snprintf(out, sz, "./CeroClient");
+
 #else
     ssize_t n = readlink("/proc/self/exe", out, sz - 1);
     if (n > 0) out[n] = '\0';
     else snprintf(out, sz, "./CeroClient");
 #endif
 }
-
-
 
 static void quit_app(void) {
     g_really_quit = 1;

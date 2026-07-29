@@ -5,15 +5,14 @@ from pathlib import Path
 from logger import step, ok, info, fail_
 
 def run():
-    is_windows = (sys.platform == "win32")
-    step(f"Building local launcher ({'windows' if is_windows else 'linux/bsd'})")
+    step(f"Building local launcher ({'windows' if sys.platform == "win32" else 'linux/bsd'})")
 
     env = os.environ.copy()
 
     src_dir = Path("src")
     sources = sorted([str(p) for p in src_dir.rglob("*") if p.suffix in [".c", ".cpp"]])
     
-    if is_windows:
+    if sys.platform == "win32":
         sources = [s.replace("\\", "/") for s in sources]
     
     if not sources:
@@ -26,7 +25,7 @@ def run():
         objs.append(obj)
     objs_str = " ".join(objs)
 
-    if is_windows:
+    if sys.platform == "win32":
         win_defs = "-D_WIN32 -DWIN32_LEAN_AND_MEAN -D_WINSOCKAPI_"
         
         webview2_inc = os.environ.get("WEBVIEW2_INCLUDE", "")
@@ -55,6 +54,39 @@ CXXFLAGS = -O2 -std=c++17 {inc_flags} {win_defs} -Wno-unused-function
 LDFLAGS  = {curl_static_deps} {win_libs}
 
 TARGET   = CeroClient.exe
+OBJS     = {objs_str}
+
+ $(TARGET): $(OBJS)
+{TAB}$(CXX) -o $(TARGET) $(OBJS) $(LDFLAGS)
+
+obj/%.o: src/%.c
+{TAB}@mkdir -p $(dir $@)
+{TAB}$(CC) $(CFLAGS) -c $< -o $@
+
+obj/%.o: src/%.cpp
+{TAB}@mkdir -p $(dir $@)
+{TAB}$(CXX) $(CXXFLAGS) -c $< -o $@
+"""
+    elif sys.platform == "darwin":
+        # --- CONFIGURATION macOS (Apple Silicon & Intel) ---
+        # macOS utilise son WebKit natif via Cocoa, pas besoin de pkg-config pour ça.
+        # On utilise brew pour curl.
+        brew_prefix = "/opt/homebrew" if os.path.exists("/opt/homebrew") else "/usr/local"
+        
+        inc_flags = f"-Iinclude -Ithird_party/webview/core/include -I{brew_prefix}/include"
+        lib_flags = f"-L{brew_prefix}/lib -lcurl"
+        
+        # Frameworks macOS nécessaires pour WebView et l'interface
+        frameworks = "-framework WebKit -framework Cocoa -framework AppKit -framework Foundation"
+        
+        TAB = "\t"
+        makefile_content = f"""CC       = clang
+CXX      = clang++
+CFLAGS   = -O2 -std=c11 {inc_flags} -Wno-unused-function
+CXXFLAGS = -O2 -std=c++17 {inc_flags} -Wno-unused-function
+LDFLAGS  = {lib_flags} {frameworks}
+
+TARGET   = CeroClient
 OBJS     = {objs_str}
 
  $(TARGET): $(OBJS)
@@ -126,7 +158,7 @@ obj/%.o: src/%.cpp
     ok("Makefile generated")
 
     info("Compiling launcher...")
-    if is_windows:
+    if sys.platform == "win32":
         make_cmd = "mingw32-make"
     elif "freebsd" in sys.platform:
         make_cmd = "gmake"
