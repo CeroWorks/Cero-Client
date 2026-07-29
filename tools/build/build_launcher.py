@@ -10,7 +10,7 @@ def run():
     env = os.environ.copy()
 
     src_dir = Path("src")
-    sources = sorted([str(p) for p in src_dir.rglob("*") if p.suffix in [".c", ".cpp"]])
+    sources = sorted([str(p) for p in src_dir.rglob("*") if p.suffix in [".c", ".cpp", ".mm"]])
     
     if sys.platform == "win32":
         sources = [s.replace("\\", "/") for s in sources]
@@ -68,15 +68,11 @@ obj/%.o: src/%.cpp
 {TAB}$(CXX) $(CXXFLAGS) -c $< -o $@
 """
     elif sys.platform == "darwin":
-        # --- CONFIGURATION macOS (Apple Silicon & Intel) ---
-        # macOS utilise son WebKit natif via Cocoa, pas besoin de pkg-config pour ça.
-        # On utilise brew pour curl.
         brew_prefix = "/opt/homebrew" if os.path.exists("/opt/homebrew") else "/usr/local"
         
         inc_flags = f"-Iinclude -Ithird_party/webview/core/include -I{brew_prefix}/include"
         lib_flags = f"-L{brew_prefix}/lib -lcurl"
         
-        # Frameworks macOS nécessaires pour WebView et l'interface
         frameworks = "-framework WebKit -framework Cocoa -framework AppKit -framework Foundation"
         
         TAB = "\t"
@@ -99,6 +95,10 @@ obj/%.o: src/%.c
 obj/%.o: src/%.cpp
 {TAB}@mkdir -p $(dir $@)
 {TAB}$(CXX) $(CXXFLAGS) -c $< -o $@
+
+obj/%.o: src/%.mm
+{TAB}@mkdir -p $(dir $@)
+{TAB}$(CXX) $(CXXFLAGS) -x objective-c++ -c $< -o $@
 """
     else:
         pkg_config_path_export = ""
