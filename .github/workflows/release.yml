@@ -173,11 +173,30 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Download WebView2 SDK
+      - name: Download WebView2 SDK (Win7 Compatible)
         shell: pwsh
         run: |
-          Invoke-WebRequest -Uri "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2" -OutFile webview2.zip
+          Invoke-WebRequest -Uri "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2/1.0.1518.140" -OutFile webview2.zip
           Expand-Archive -Path webview2.zip -DestinationPath webview2_sdk
+
+      - name: Compile Win7-compatible libcurl
+        shell: msys2 {0}
+        run: |
+          curl -L https://github.com/curl/curl/releases/download/curl-8_6_0/curl-8.6.0.tar.gz -o curl.tar.gz
+          tar -xzf curl.tar.gz
+          cd curl-8.6.0
+          ./configure CFLAGS="-D_WIN32_WINNT=0x0601 -DNTDDI_VERSION=0x06010000" \
+            --with-schannel --without-ssl --without-zlib --without-brotli --without-zstd \
+            --without-libpsl --without-libssh2 --without-nghttp2 --without-nghttp3 \
+            --without-ngtcp2 --enable-shared --disable-static
+          make -j4
+          cp -f lib/.libs/libcurl-4.dll /mingw64/bin/
+          cp -f lib/.libs/libcurl.dll.a /mingw64/lib/
+
+          rm -f /mingw64/lib/libcurl.a /mingw64/lib/libngtcp2_crypto_libressl.a
+
+          sed -i 's/\r//g' build.py
+          sed -i 's|curl_static_deps = .*|curl_static_deps = "-lcurl -lws2_32 -lcrypt32"|g' build.py
 
       - uses: dtolnay/rust-toolchain@stable
 
@@ -256,6 +275,9 @@ jobs:
           Copy-Item bin\windows\client\CeroClient.exe stage\
           Copy-Item bin\windows\bootstrapper\ceroclient-bootstrapper.exe stage\
           Copy-Item bin\assets\assets.dat stage\
+
+          Copy-Item C:\msys64\mingw64\bin\libcurl-4.dll stage\
+          Copy-Item webview2_sdk\build\native\x64\WebView2Loader.dll stage\
 
           $installer = Get-ChildItem -Path . -Filter "CeroClient-Setup-*.exe" -File | Select-Object -First 1
 

@@ -17,7 +17,7 @@ def run():
 
     if sys.platform == "win32":
         sources = [s.replace("\\", "/") for s in sources]
-    
+
     if not sources:
         fail_("No C/C++ sources found in src/")
     ok(f"{len(sources)} sources detected")
@@ -29,26 +29,26 @@ def run():
     objs_str = " ".join(objs)
 
     if sys.platform == "win32":
-        win_defs = "-D_WIN32 -DWIN32_LEAN_AND_MEAN -D_WINSOCKAPI_"
-        
+        win_defs = "-D_WIN32 -DWIN32_LEAN_AND_MEAN -D_WINSOCKAPI_ -D_WIN32_WINNT=0x0601 -DNTDDI_VERSION=0x06010000"
+
         webview2_inc = os.environ.get("WEBVIEW2_INCLUDE", "")
         webview2_lib = os.environ.get("WEBVIEW2_LIB", "")
-        
+
         inc_flags = "-Iinclude -Ithird_party/webview/core/include"
         if webview2_inc:
             inc_flags += f" -I{webview2_inc}"
-            
+
         lib_flags = ""
         if webview2_lib:
             lib_flags += f" -L{webview2_lib}"
-        
+
         if os.path.exists("/usr/lib/libngtcp2_crypto_libressl.a") or os.path.exists("C:/msys64/mingw64/lib/libngtcp2_crypto_libressl.a"):
             curl_static_deps = "-Wl,--start-group -l:libcurl.a -l:libssh2.a -l:libnghttp2.a -l:libnghttp3.a -l:libngtcp2.a -l:libngtcp2_crypto_libressl.a -l:libssl.a -l:libcrypto.a -l:libz.a -l:libzstd.a -l:libbrotlidec.a -l:libbrotlicommon.a -l:libpsl.a -Wl,--end-group"
         else:
             curl_static_deps = "-lcurl -lssl -lcrypto -lssh2 -lnghttp2 -lnghttp3 -lz -lzstd -lbrotlidec -lbrotlicommon -lpsl -lws2_32 -lwldap32 -lcrypt32 -lnormaliz -lsecur32 -liphlpapi"
-            
+
         win_libs = f"{lib_flags} -lws2_32 -lwldap32 -lcrypt32 -lnormaliz -lsecur32 -liphlpapi -l:WebView2Loader.dll.lib -lole32 -lshlwapi -lversion -ladvapi32 -luser32 -lshell32 -lgdi32 -static-libgcc -static-libstdc++ -ldwmapi -lwininet -lbcrypt -Wl,--defsym=fstat64=_fstat64 -s -Wl,-subsystem,windows"
-        
+
         TAB = "\t"
         makefile_content = f"""CC       = gcc
 CXX      = g++
@@ -72,12 +72,12 @@ obj/%.o: src/%.cpp
 """
     elif sys.platform == "darwin":
         brew_prefix = "/opt/homebrew" if os.path.exists("/opt/homebrew") else "/usr/local"
-        
+
         inc_flags = f"-Iinclude -Ithird_party/webview/core/include -I{brew_prefix}/include"
         lib_flags = f"-L{brew_prefix}/lib -lcurl"
-        
+
         frameworks = "-framework WebKit -framework Cocoa -framework AppKit -framework Foundation"
-        
+
         TAB = "\t"
         makefile_content = f"""CC       = clang
 CXX      = clang++
@@ -167,11 +167,11 @@ obj/%.o: src/%.cpp
         make_cmd = "gmake"
     else:
         make_cmd = "make"
-        
+
     result = subprocess.run([make_cmd], env=env)
-    
+
     if result.returncode != 0:
         fail_("Build failed")
-        
+
     if os.path.exists("Makefile"):
         os.remove("Makefile")

@@ -646,7 +646,7 @@ static int url_is_http_or_https(const char* url) {
 static int try_exec_opener(const char* opener, const char* url) {
     char* const argv[] = { (char*)opener, (char*)url, NULL };
     execvp(opener, argv);
-    return -1; 
+    return -1;
 }
 
 static void open_url_no_shell(const char* url) {
@@ -772,7 +772,7 @@ static LRESULT CALLBACK subclass_wndproc(HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 
 #ifdef __ANDROID__
 int cero_main(int argc, char** argv) {
-    
+
 }
 #else
 int main(int argc, char** argv){
@@ -800,7 +800,7 @@ int main(int argc, char** argv){
     usleep(100000);
 #endif
 
-    
+
     single_instance_write_port(local_bridge_port);
 
     init_config();
