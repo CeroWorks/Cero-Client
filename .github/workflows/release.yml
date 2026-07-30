@@ -193,6 +193,27 @@ jobs:
         shell: pwsh
         run: choco install nsis -y --no-progress
 
+      - name: Install NSIS ZipDLL plugin
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $pluginDir = "C:\Program Files (x86)\NSIS\Plugins\x86-unicode"
+          New-Item -ItemType Directory -Force -Path $pluginDir | Out-Null
+
+          $url = "https://nsis.sourceforge.io/mediawiki/images/d/d9/ZipDLL.zip"
+          Invoke-WebRequest -Uri $url -OutFile zipdll.zip
+          Expand-Archive -Path zipdll.zip -DestinationPath zipdll_extract -Force
+
+          $unicodeDll = Get-ChildItem -Path zipdll_extract -Recurse -Filter "ZipDllU.dll" | Select-Object -First 1
+          if (-not $unicodeDll) {
+            $unicodeDll = Get-ChildItem -Path zipdll_extract -Recurse -Filter "ZipDll.dll" | Select-Object -First 1
+          }
+
+          if (-not $unicodeDll) { throw "ZipDll DLL not found in archive" }
+
+          Copy-Item $unicodeDll.FullName (Join-Path $pluginDir "ZipDll.dll") -Force
+          Write-Host "Installed ZipDll -> $(Join-Path $pluginDir 'ZipDll.dll')"
+
       - name: Stage icon for NSIS
         shell: pwsh
         run: |
@@ -255,29 +276,43 @@ jobs:
           prepare: |
             set -e
             env IGNORE_OSVERSION=yes pkg update -f
-            env IGNORE_OSVERSION=yes pkg install -y python3 pkgconf webkit2-gtk_41 curl git openjdk17 gmake bzip2 rust gtk4 nim zip
-            printf "Name: bzip2\nDescription: bzip2\nVersion: 1.0.8\nLibs: -lbz2\n" > /usr/local/libdata/pkgconfig/bzip2.pc
+            env IGNORE_OSVERSION=yes pkg install -y \
+              python3 pkgconf webkit2-gtk_41 curl git openjdk17 \
+              gmake bzip2 rust gtk4 nim zip
+            printf "Name: bzip2\nDescription: bzip2\nVersion: 1.0.8\nLibs: -lbz2\n" \
+              > /usr/local/libdata/pkgconfig/bzip2.pc
+            ln -sf /usr/local/bin/pkg-config /usr/bin/pkg-config
 
-            NIM_BIN=$(pkg info -l nim | grep '/bin/nim$' | head -n1)
+            NIM_BIN="$(command -v nim || true)"
             if [ -z "$NIM_BIN" ]; then
-              echo "ERROR: could not locate nim binary in nim package files" >&2
-              pkg info -l nim || true
+              NIM_BIN="$(find /usr/local -name nim -type f -perm -u+x 2>/dev/null | head -n1 || true)"
+            fi
+            if [ -z "$NIM_BIN" ]; then
+              echo "ERROR: nim binary not found after pkg install" >&2
+              find /usr/local -name 'nim' 2>/dev/null
               exit 1
             fi
             echo "Found nim at: $NIM_BIN"
+            ln -sf "$NIM_BIN" /usr/local/bin/nim
             ln -sf "$NIM_BIN" /usr/bin/nim
 
-            NIMBLE_BIN=$(pkg info -l nim | grep '/bin/nimble$' | head -n1)
+            NIMBLE_BIN="$(command -v nimble || true)"
             if [ -n "$NIMBLE_BIN" ]; then
               ln -sf "$NIMBLE_BIN" /usr/bin/nimble
             fi
 
-            ln -sf /usr/local/bin/pkg-config /usr/bin/pkg-config
+            nim --version || { echo "nim invocation failed"; exit 1; }
           run: |
-            export PATH=/usr/local/bin:$PATH
+            set -e
+            export PATH="/usr/local/bin:/usr/bin:$PATH"
             export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/libdata/pkgconfig
+
+            command -v nim || { echo "nim still not on PATH"; exit 1; }
+            nim --version | head -n1
+
             python3 build.py
             python3 installer/unix/build_installer.py
+
             mkdir -p stage
             cp bin/freebsd/client/CeroClient stage/
             cp bin/freebsd/bootstrapper/ceroclient-bootstrapper stage/
