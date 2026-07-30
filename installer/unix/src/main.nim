@@ -1,7 +1,8 @@
 {.passC: gorge("pkg-config --cflags gtk4").}
 {.passL: gorge("pkg-config --libs gtk4").}
 {.passL: gorge("pkg-config --libs gmodule-2.0").}
-{.passL: "-lselinux".}
+when defined(linux):
+  {.passL: "-lselinux".}
 
 import std/[httpclient, os, strutils, strformat, osproc]
 
