@@ -1,6 +1,6 @@
 #ifdef _WIN32
   #define WIN32_LEAN_AND_MEAN
-  #define _WINSOCKAPI_ 
+  #define _WINSOCKAPI_
   #include <winsock2.h>
   #include <windows.h>
   #include <dwmapi.h>
@@ -43,16 +43,16 @@ extern "C" {
 
 #if defined(__linux__) || defined(__BSD__)
 extern "C" {
-    
+
 extern int g_really_quit;
 
 bool system_prefers_dark() {
     GSettings* settings = g_settings_new("org.gnome.desktop.interface");
     if (!settings) return false;
-    
+
     gchar* scheme = g_settings_get_string(settings, "color-scheme");
     bool is_dark = scheme && strstr(scheme, "dark") != nullptr;
-    
+
     g_free(scheme);
     g_object_unref(settings);
     return is_dark;
@@ -114,19 +114,19 @@ static gboolean on_window_delete(GtkWidget* widget, GdkEvent* event, gpointer da
 
 static void ceroclient_uri_scheme_cb(WebKitURISchemeRequest *request, gpointer user_data) {
     const gchar *path = webkit_uri_scheme_request_get_path(request);
-    
+
     if (path && path[0] == '/') {
         path++;
     }
 
     const uint8_t *data = NULL;
     size_t size = 0;
-    
+
     if (assets_get_file(path, &data, &size) && data && size > 0) {
         GBytes *bytes = g_bytes_new_with_free_func(data, size, (GDestroyNotify)assets_free_buffer, (void*)data);
         GInputStream *stream = g_memory_input_stream_new_from_bytes(bytes);
         g_bytes_unref(bytes);
-        
+
         const char *mime = "text/html";
         const char *ext = strrchr(path, '.');
         if (ext) {
@@ -140,7 +140,7 @@ static void ceroclient_uri_scheme_cb(WebKitURISchemeRequest *request, gpointer u
             else if (strcmp(ext, ".woff") == 0) mime = "font/woff";
             else if (strcmp(ext, ".ttf") == 0) mime = "font/ttf";
         }
-        
+
         webkit_uri_scheme_request_finish(request, stream, size, mime);
         g_object_unref(stream);
     } else {
@@ -211,7 +211,7 @@ void ui_set_icon(void* w, const char* icon_path) {
 
     const uint8_t* data = NULL;
     size_t size = 0;
-    
+
     if (assets_get_file("app/favicon.ico", &data, &size) && data && size > 0) {
 #ifdef _WIN32
         HICON hIcon = (HICON)CreateIconFromResource((PBYTE)data, (DWORD)size, TRUE, 0x00030000);
@@ -244,6 +244,27 @@ void ui_set_icon(void* w, const char* icon_path) {
 void* ui_get_window(void* w) { return webview_get_window((webview_t)w); }
 
 #ifndef __APPLE__
+void ui_set_frameless(void* w) {
+#ifdef _WIN32
+    HWND hwnd = (HWND)webview_get_window((webview_t)w);
+    LONG style = GetWindowLong(hwnd, GWL_STYLE);
+    style &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU);
+    style |= WS_POPUP;
+    SetWindowLong(hwnd, GWL_STYLE, style);
+    SetWindowPos(hwnd, NULL, 0, 0, 0, 0,
+        SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER);
+    int pref = DWMWCP_ROUND;
+    DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &pref, sizeof(pref));
+#elif defined(__linux__) || defined(__BSD__)
+    GtkWindow* win = GTK_WINDOW(webview_get_window((webview_t)w));
+    gtk_window_set_decorated(win, FALSE);
+    g_signal_connect(GTK_WIDGET(win), "size-allocate",
+                     G_CALLBACK(on_size_allocate), NULL);
+    g_signal_connect(GTK_WIDGET(win), "delete-event",
+                     G_CALLBACK(on_window_delete), NULL);
+#endif
+}
+
 void ui_show_window(void* w) {
 #ifdef _WIN32
     HWND hwnd = (HWND)webview_get_window((webview_t)w);
@@ -251,7 +272,7 @@ void ui_show_window(void* w) {
     ShowWindow(hwnd, SW_RESTORE);
     ShowWindow(hwnd, SW_SHOW);
     SetForegroundWindow(hwnd);
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__BSD__)
     GtkWindow* win = GTK_WINDOW(webview_get_window((webview_t)w));
     if (!win) return;
     gtk_widget_show(GTK_WIDGET(win));
@@ -264,7 +285,7 @@ void ui_hide_window(void* w) {
 #ifdef _WIN32
     HWND hwnd = (HWND)webview_get_window((webview_t)w);
     if (hwnd) ShowWindow(hwnd, SW_HIDE);
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__BSD__)
     GtkWindow* win = GTK_WINDOW(webview_get_window((webview_t)w));
     if (win) gtk_widget_hide(GTK_WIDGET(win));
 #endif
@@ -274,30 +295,9 @@ void ui_minimize_window(void* w) {
 #ifdef _WIN32
     HWND hwnd = (HWND)webview_get_window((webview_t)w);
     if (hwnd) ShowWindow(hwnd, SW_MINIMIZE);
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__BSD__)
     GtkWindow* win = GTK_WINDOW(webview_get_window((webview_t)w));
     if (win) gtk_window_iconify(win);
-#endif
-}
-
-void ui_set_frameless(void* w) {
-#ifdef _WIN32
-    HWND hwnd = (HWND)webview_get_window((webview_t)w);
-    LONG style = GetWindowLong(hwnd, GWL_STYLE);
-    style &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU);
-    style |= WS_POPUP;
-    SetWindowLong(hwnd, GWL_STYLE, style);
-    SetWindowPos(hwnd, NULL, 0, 0, 0, 0,
-        SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER);
-    int pref = DWMWCP_ROUND;
-    DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &pref, sizeof(pref));
-#elif defined(__linux__)
-    GtkWindow* win = GTK_WINDOW(webview_get_window((webview_t)w));
-    gtk_window_set_decorated(win, FALSE);
-    g_signal_connect(GTK_WIDGET(win), "size-allocate",
-                     G_CALLBACK(on_size_allocate), NULL);
-    g_signal_connect(GTK_WIDGET(win), "delete-event",
-                     G_CALLBACK(on_window_delete), NULL);
 #endif
 }
 
@@ -306,7 +306,7 @@ void ui_drag_start(void* w) {
     HWND hwnd = (HWND)webview_get_window((webview_t)w);
     ReleaseCapture();
     SendMessage(hwnd, WM_NCLBUTTONDOWN, HTCAPTION, 0);
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__BSD__)
     GtkWindow* win = GTK_WINDOW(webview_get_window((webview_t)w));
     GdkDisplay* display = gdk_display_get_default();
     GdkSeat* seat = gdk_display_get_default_seat(display);
