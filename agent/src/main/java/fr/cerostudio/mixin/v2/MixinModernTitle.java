@@ -4,6 +4,12 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
+/**
+ * Mixin Modern — Modifie le titre de la fenêtre pour les versions 1.13+.
+ * Utilise GLFW glfwCreateWindow / glfwSetWindowTitle via LWJGL 3.
+ *
+ * ⚠ IMPORTANT: Cette classe DOIT rester en Java (voir MixinMain).
+ */
 @Mixin(targets = "com.mojang.blaze3d.platform.Window")
 public class MixinModernTitle {
 

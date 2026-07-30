@@ -24,3 +24,5 @@ deploy.pl
 
 __pycache__/
 *.pyc
+
+*.zip

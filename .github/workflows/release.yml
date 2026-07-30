@@ -196,7 +196,7 @@ jobs:
       - name: Build NSIS Installer
         shell: pwsh
         run: |
-          & "C:\Program Files (x86)\NSIS\makensis.exe" installer/windows/installer.nsi
+          & "C:\Program Files (x86)\NSIS\makensis.exe" installer/winnt/installer.nsi
 
       - name: Stage release files
         shell: pwsh
@@ -205,7 +205,7 @@ jobs:
           Copy-Item bin\windows\client\CeroClient.exe stage\
           Copy-Item bin\windows\bootstrapper\ceroclient-bootstrapper.exe stage\
           Copy-Item bin\assets\assets.dat stage\
-          Copy-Item installer\windows\cero-installer.exe stage\
+          Copy-Item installer\winnt\cero-installer.exe stage\
 
       - uses: actions/upload-artifact@v4
         with:
