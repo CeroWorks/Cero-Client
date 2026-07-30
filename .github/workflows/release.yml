@@ -193,6 +193,26 @@ jobs:
         shell: pwsh
         run: choco install nsis -y --no-progress
 
+      - name: Stage icon for NSIS
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path assets | Out-Null
+          $icon = $null
+
+          $candidates = @(
+            "installer\winnt\assets\favicon.ico",
+            "assets\favicon.ico"
+          )
+          foreach ($c in $candidates) {
+            if (Test-Path $c) { $icon = $c; break }
+          }
+          if (-not $icon) {
+            Write-Error "favicon.ico not found in any expected location"
+            exit 1
+          }
+          Copy-Item $icon "assets\favicon.ico" -Force
+          Write-Host "Staged icon from $icon -> assets\favicon.ico"
+
       - name: Build NSIS Installer
         shell: pwsh
         run: |
