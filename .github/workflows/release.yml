@@ -196,9 +196,11 @@ jobs:
       - name: Stage icon for NSIS
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path assets | Out-Null
-          $icon = $null
+          $destDir = "installer\winnt\assets"
+          $dest = Join-Path $destDir "favicon.ico"
+          New-Item -ItemType Directory -Force -Path $destDir | Out-Null
 
+          $icon = $null
           $candidates = @(
             "installer\winnt\assets\favicon.ico",
             "assets\favicon.ico"
@@ -212,13 +214,13 @@ jobs:
           }
 
           $resolvedIcon = (Resolve-Path $icon).Path
-          $resolvedDest = Join-Path (Resolve-Path "assets").Path "favicon.ico"
+          $resolvedDest = Join-Path (Resolve-Path $destDir).Path "favicon.ico"
 
           if ($resolvedIcon -ne $resolvedDest) {
-            Copy-Item $icon "assets\favicon.ico" -Force
-            Write-Host "Staged icon from $icon -> assets\favicon.ico"
+            Copy-Item $icon $dest -Force
+            Write-Host "Staged icon from $icon -> $dest"
           } else {
-            Write-Host "Icon already staged at assets\favicon.ico, skipping copy"
+            Write-Host "Icon already staged at $dest, skipping copy"
           }
 
       - name: Build NSIS Installer
@@ -256,14 +258,20 @@ jobs:
             env IGNORE_OSVERSION=yes pkg install -y python3 pkgconf webkit2-gtk_41 curl git openjdk17 gmake bzip2 rust gtk4 nim zip
             printf "Name: bzip2\nDescription: bzip2\nVersion: 1.0.8\nLibs: -lbz2\n" > /usr/local/libdata/pkgconfig/bzip2.pc
 
-            if [ ! -x /usr/local/bin/nim ]; then
-              echo "ERROR: nim not installed at /usr/local/bin/nim" >&2
-              pkg info | grep -i nim || true
+            NIM_BIN=$(pkg info -l nim | grep '/bin/nim$' | head -n1)
+            if [ -z "$NIM_BIN" ]; then
+              echo "ERROR: could not locate nim binary in nim package files" >&2
+              pkg info -l nim || true
               exit 1
             fi
+            echo "Found nim at: $NIM_BIN"
+            ln -sf "$NIM_BIN" /usr/bin/nim
 
-            ln -sf /usr/local/bin/nim /usr/bin/nim
-            ln -sf /usr/local/bin/nimble /usr/bin/nimble
+            NIMBLE_BIN=$(pkg info -l nim | grep '/bin/nimble$' | head -n1)
+            if [ -n "$NIMBLE_BIN" ]; then
+              ln -sf "$NIMBLE_BIN" /usr/bin/nimble
+            fi
+
             ln -sf /usr/local/bin/pkg-config /usr/bin/pkg-config
           run: |
             export PATH=/usr/local/bin:$PATH
