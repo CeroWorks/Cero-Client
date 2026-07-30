@@ -189,14 +189,14 @@ jobs:
           WEBVIEW2_LIB: ${{ github.workspace }}\webview2_sdk\build\native\x64
         run: python build.py
 
+      - name: Install NSIS
+        shell: pwsh
+        run: choco install nsis -y --no-progress
+
       - name: Build NSIS Installer
         shell: pwsh
         run: |
-          $nsisPath = "${env:ProgramFiles(x86)}\NSIS\makensis.exe"
-          if (-Not (Test-Path $nsisPath)) {
-            $nsisPath = "${env:ProgramFiles}\NSIS\makensis.exe"
-          }
-          & $nsisPath installer/windows/installer.nsi
+          & "C:\Program Files (x86)\NSIS\makensis.exe" installer/windows/installer.nsi
 
       - name: Stage release files
         shell: pwsh

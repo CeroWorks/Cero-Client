@@ -9,7 +9,17 @@ SOURCE_FILE = os.path.join(SCRIPT_DIR, "src", "main.nim")
 OUTPUT_NAME = os.path.join(SCRIPT_DIR, "cero-installer")
 
 def check_command_exists(cmd):
-    return shutil.which(cmd) is not None
+    path = shutil.which(cmd)
+    if path:
+        return True
+
+    common_paths = ["/usr/local/bin", "/usr/bin", "/opt/local/bin", "/bin"]
+    for p in common_paths:
+        full_path = os.path.join(p, cmd)
+        if os.path.exists(full_path):
+            return True
+
+    return False
 
 def check_dependencies():
     if not check_command_exists("nim"):
