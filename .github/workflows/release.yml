@@ -256,7 +256,20 @@ jobs:
           Copy-Item bin\windows\client\CeroClient.exe stage\
           Copy-Item bin\windows\bootstrapper\ceroclient-bootstrapper.exe stage\
           Copy-Item bin\assets\assets.dat stage\
-          Copy-Item installer\winnt\cero-installer.exe stage\
+
+          $installer = Get-ChildItem -Path . -Filter "CeroClient-Setup-*.exe" -File | Select-Object -First 1
+
+          if (-not $installer) {
+            $installer = Get-ChildItem -Path "installer\winnt" -Filter "CeroClient-Setup-*.exe" -File | Select-Object -First 1
+          }
+
+          if (-not $installer) {
+            Write-Error "L'installateur NSIS généré est introuvable"
+            exit 1
+          }
+
+          Write-Host "Trouvé : $($installer.FullName) -> copie vers stage\cero-installer.exe"
+          Copy-Item $installer.FullName "stage\cero-installer.exe"
 
       - uses: actions/upload-artifact@v4
         with:
