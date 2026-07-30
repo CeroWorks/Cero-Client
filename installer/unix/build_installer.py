@@ -2,17 +2,14 @@ import subprocess
 import os
 import sys
 import platform
+import shutil
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SOURCE_FILE = os.path.join(SCRIPT_DIR, "src", "main.nim")
 OUTPUT_NAME = os.path.join(SCRIPT_DIR, "cero-installer")
 
 def check_command_exists(cmd):
-    try:
-        subprocess.run([cmd, "--version"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        return True
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return False
+    return shutil.which(cmd) is not None
 
 def check_dependencies():
     if not check_command_exists("nim"):
@@ -39,7 +36,7 @@ def build(mode="release"):
         f"-o:{output_file}",
         "--mm:arc",
         "--threads:on",
-        "-d:ssl",  # Activation du support HTTPS
+        "-d:ssl",
     ]
 
     if mode == "release":
