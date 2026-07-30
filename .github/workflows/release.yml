@@ -210,8 +210,16 @@ jobs:
             Write-Error "favicon.ico not found in any expected location"
             exit 1
           }
-          Copy-Item $icon "assets\favicon.ico" -Force
-          Write-Host "Staged icon from $icon -> assets\favicon.ico"
+
+          $resolvedIcon = (Resolve-Path $icon).Path
+          $resolvedDest = Join-Path (Resolve-Path "assets").Path "favicon.ico"
+
+          if ($resolvedIcon -ne $resolvedDest) {
+            Copy-Item $icon "assets\favicon.ico" -Force
+            Write-Host "Staged icon from $icon -> assets\favicon.ico"
+          } else {
+            Write-Host "Icon already staged at assets\favicon.ico, skipping copy"
+          }
 
       - name: Build NSIS Installer
         shell: pwsh
@@ -243,9 +251,17 @@ jobs:
           release: 14.2
           usesh: true
           prepare: |
+            set -e
             env IGNORE_OSVERSION=yes pkg update -f
             env IGNORE_OSVERSION=yes pkg install -y python3 pkgconf webkit2-gtk_41 curl git openjdk17 gmake bzip2 rust gtk4 nim zip
             printf "Name: bzip2\nDescription: bzip2\nVersion: 1.0.8\nLibs: -lbz2\n" > /usr/local/libdata/pkgconfig/bzip2.pc
+
+            if [ ! -x /usr/local/bin/nim ]; then
+              echo "ERROR: nim not installed at /usr/local/bin/nim" >&2
+              pkg info | grep -i nim || true
+              exit 1
+            fi
+
             ln -sf /usr/local/bin/nim /usr/bin/nim
             ln -sf /usr/local/bin/nimble /usr/bin/nimble
             ln -sf /usr/local/bin/pkg-config /usr/bin/pkg-config
