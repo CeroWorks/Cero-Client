@@ -19,7 +19,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential pkg-config libwebkit2gtk-4.1-dev libcurl4-openssl-dev git libgtk-4-dev
+          sudo apt-get install -y build-essential pkg-config libwebkit2gtk-4.1-dev libcurl4-openssl-dev git libgtk-4-dev xz-utils
 
       - uses: actions/setup-python@v5
         with:
@@ -32,9 +32,11 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
-      - uses: jiro4989/setup-nim-action@v1
-        with:
-          nim-version: '2.0.x'
+      - name: Install Nim
+        run: |
+          curl -L https://nim-lang.org/download/nim-2.0.16-linux_x64.tar.xz -o nim.tar.xz
+          tar -xf nim.tar.xz
+          echo "$PWD/nim-2.0.16/bin" >> $GITHUB_PATH
 
       - name: Run CeroClient Build Pipeline
         run: python3 build.py
@@ -63,7 +65,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential pkg-config libwebkit2gtk-4.1-dev libcurl4-openssl-dev git libgtk-4-dev
+          sudo apt-get install -y build-essential pkg-config libwebkit2gtk-4.1-dev libcurl4-openssl-dev git libgtk-4-dev xz-utils
 
       - uses: actions/setup-python@v5
         with:
@@ -76,9 +78,11 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
-      - uses: jiro4989/setup-nim-action@v1
-        with:
-          nim-version: '2.0.x'
+      - name: Install Nim
+        run: |
+          curl -L https://nim-lang.org/download/nim-2.0.16-linux_arm64.tar.xz -o nim.tar.xz
+          tar -xf nim.tar.xz
+          echo "$PWD/nim-2.0.16/bin" >> $GITHUB_PATH
 
       - name: Run CeroClient Build Pipeline
         run: python3 build.py
@@ -122,9 +126,11 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
-      - uses: jiro4989/setup-nim-action@v1
-        with:
-          nim-version: '2.0.x'
+      - name: Install Nim
+        run: |
+          curl -L https://nim-lang.org/download/nim-2.0.16-macosx_arm64.tar.xz -o nim.tar.xz
+          tar -xf nim.tar.xz
+          echo "$PWD/nim-2.0.16/bin" >> $GITHUB_PATH
 
       - name: Run CeroClient Build Pipeline
         run: python3 build.py
@@ -179,9 +185,12 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - uses: jiro4989/setup-nim-action@v1
-        with:
-          nim-version: '2.0.x'
+      - name: Install Nim
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://nim-lang.org/download/nim-2.0.16_x64.zip" -OutFile nim.zip
+          Expand-Archive -Path nim.zip -DestinationPath .
+          echo "$pwd\nim-2.0.16\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Download WebView2 SDK
         shell: pwsh
@@ -278,7 +287,7 @@ jobs:
             mkdir -p "pkg/$target/bootstrapper"
             mkdir -p "pkg/$target/installer"
 
-            # Client (tout sauf bootstrapper et installeur)
+            # Client
             find "$dir" -maxdepth 1 -type f ! -iname "ceroclient-bootstrapper*" ! -iname "cero-installer*" -exec cp {} "pkg/$target/client/" \;
             (cd "pkg/$target/client" && zip -r "../../../release/CeroClient-${target}.zip" .)
 
