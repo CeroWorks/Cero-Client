@@ -65,7 +65,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential pkg-config libwebkit2gtk-4.1-dev libcurl4-openssl-dev git libgtk-4-dev xz-utils
+          sudo apt-get install -y build-essential pkg-config libwebkit2gtk-4.1-dev libcurl4-openssl-dev git libgtk-4-dev nim
 
       - uses: actions/setup-python@v5
         with:
@@ -77,12 +77,6 @@ jobs:
           distribution: 'temurin'
 
       - uses: dtolnay/rust-toolchain@stable
-
-      - name: Install Nim
-        run: |
-          curl -L https://nim-lang.org/download/nim-2.0.16-linux_arm64.tar.xz -o nim.tar.xz
-          tar -xf nim.tar.xz
-          echo "$PWD/nim-2.0.16/bin" >> $GITHUB_PATH
 
       - name: Run CeroClient Build Pipeline
         run: python3 build.py
@@ -116,7 +110,7 @@ jobs:
 
       - name: Install Homebrew dependencies
         run: |
-          brew install python@3.12 curl pkg-config git gtk4
+          brew install python@3.12 curl pkg-config git gtk4 nim
           brew link --force python@3.12
 
       - uses: actions/setup-java@v4
@@ -125,12 +119,6 @@ jobs:
           distribution: 'temurin'
 
       - uses: dtolnay/rust-toolchain@stable
-
-      - name: Install Nim
-        run: |
-          curl -L https://nim-lang.org/download/nim-2.0.16-macosx_arm64.tar.xz -o nim.tar.xz
-          tar -xf nim.tar.xz
-          echo "$PWD/nim-2.0.16/bin" >> $GITHUB_PATH
 
       - name: Run CeroClient Build Pipeline
         run: python3 build.py
@@ -174,7 +162,7 @@ jobs:
             mingw-w64-x86_64-zstd
             mingw-w64-x86_64-openssl
             mingw-w64-x86_64-gtk4
-            mingw-w64-x86_64-zip
+            zip
 
       - uses: actions/setup-python@v5
         with:
@@ -241,7 +229,7 @@ jobs:
             env IGNORE_OSVERSION=yes pkg install -y python3 pkgconf webkit2-gtk_41 curl git openjdk17 gmake bzip2 rust gtk4 nim zip
             printf "Name: bzip2\nDescription: bzip2\nVersion: 1.0.8\nLibs: -lbz2\n" > /usr/local/libdata/pkgconfig/bzip2.pc
           run: |
-            export PATH=$PATH:/usr/local/bin
+            export PATH=/usr/local/bin:$PATH
             export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/libdata/pkgconfig
             python3 build.py
             python3 installer/unix/build_installer.py
@@ -287,15 +275,12 @@ jobs:
             mkdir -p "pkg/$target/bootstrapper"
             mkdir -p "pkg/$target/installer"
 
-            # Client
             find "$dir" -maxdepth 1 -type f ! -iname "ceroclient-bootstrapper*" ! -iname "cero-installer*" -exec cp {} "pkg/$target/client/" \;
             (cd "pkg/$target/client" && zip -r "../../../release/CeroClient-${target}.zip" .)
 
-            # Bootstrapper
             find "$dir" -maxdepth 1 -type f -iname "ceroclient-bootstrapper*" -exec cp {} "pkg/$target/bootstrapper/" \;
             (cd "pkg/$target/bootstrapper" && zip -r "../../../release/CeroClient-bootstrapper-${target}.zip" .)
 
-            # Installer
             find "$dir" -maxdepth 1 -type f -iname "cero-installer*" -exec cp {} "pkg/$target/installer/" \;
             (cd "pkg/$target/installer" && zip -r "../../../release/CeroClient-installer-${target}.zip" .)
           done
