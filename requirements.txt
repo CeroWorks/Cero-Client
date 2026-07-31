@@ -1,1 +1,3 @@
-
+# CeroClient Python requirements
+# No external dependencies required.
+# Requires Python >= 3.9.
