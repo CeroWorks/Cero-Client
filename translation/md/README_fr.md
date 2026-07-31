@@ -67,13 +67,14 @@ Si vous souhaitez compiler CeroClient vous-même, vous pouvez utiliser les scrip
 *Note : Les scripts de build téléchargeront automatiquement les éléments d'interface (assets) requis depuis notre CDN si l'outil de packaging interne n'est pas présent.*
 
 ---
-
 ## Licence
 
-Ce projet est distribué sous la **PolyForm Strict License 1.0.0**. 
+Ce projet est distribué sous la licence **PolyForm Strict License 1.0.0**.
 
-Le code source est disponible en lecture, à des fins d'audit et d'usage personnel. Cependant, la modification, la redistribution et l'utilisation commerciale du code sont strictement interdites. Voir le fichier [LICENSE](./LICENSE) pour plus de détails.
+Le code source est disponible pour examen, audit et usages non commerciaux autorisés, conformément aux termes de la licence. La redistribution, l'utilisation commerciale ainsi que la création ou la distribution de versions modifiées ne sont pas autorisées, sauf si la licence le permet explicitement.
 
----
+Consultez le fichier [LICENSE](../../LICENSE) pour plus de détails.
+
+CeroClient n'inclut ni ne distribue Minecraft lui-même ou les ressources propriétaires appartenant à Mojang ou Microsoft. Il incombe aux utilisateurs d'obtenir et d'utiliser Minecraft conformément aux conditions de Mojang.
 
 © 2025-2026 Cero Studio. Tous droits réservés.
