@@ -48,6 +48,7 @@ If you want to compile CeroClient yourself, you can use the provided build scrip
 
 **Requirements (Linux):**
 * **GCC / G++** ≥ `13.3.0`
+* **Python** ≥ `3.9`
 * **Rust / Cargo** (Latest stable)
 * **pkg-config**
 * **Dependencies:** `gtk+-3.0`, `webkit2gtk-4.1`, `libcurl` (and `ayatana-appindicator3-0.1` or `appindicator3-0.1` for system tray support)
@@ -60,9 +61,8 @@ If you want to compile CeroClient yourself, you can use the provided build scrip
 ### Instructions
 
 1. Clone the repository.
-2. Run the build script corresponding to your OS:
-   * **Linux:** `./build_linux.sh`
-   * **Windows:** `build_windows.bat`
+2. Install all python dependencies: `pip install -r requirements.txt`
+3. Run the build script: `python3 build.py`
 
 *Note: The build scripts will automatically download the required UI assets from our CDN if the internal packaging tool is not present.*
 
