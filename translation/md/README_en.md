@@ -48,7 +48,7 @@ If you want to compile CeroClient yourself, you can use the provided build scrip
 
 **Requirements (Linux):**
 * **GCC / G++** ≥ `13.3.0`
-* **Python** ≥ `3.9`
+* **Python** ≥ `3.9` (Tested : 3.13)
 * **Rust / Cargo** (Latest stable)
 * **pkg-config**
 * **Dependencies:** `gtk+-3.0`, `webkit2gtk-4.1`, `libcurl` (and `ayatana-appindicator3-0.1` or `appindicator3-0.1` for system tray support)
