@@ -53,7 +53,7 @@ proc gtk_box_new(orientation: cint, spacing: cint): ptr GtkWidget
   {.importc, header: "<gtk/gtk.h>".}
 proc gtk_button_new_with_label(label: cstring): ptr GtkWidget
   {.importc, header: "<gtk/gtk.h>".}
-proc gtk_label_new(text: cstring): ptr GtkWidget): cint
+proc gtk_label_new(text: cstring): ptr GtkWidget
   {.importc, header: "<gtk/gtk.h>".}
 proc gtk_label_set_text(label: ptr GtkLabel, text: cstring)
   {.importc, header: "<gtk/gtk.h>".}
@@ -159,6 +159,44 @@ proc lookupChecksum(checksumsTxt, filename: string): string =
       return parts[0].toLowerAscii()
   return ""
 
+proc runPrivileged(cmd: string): bool =
+  let sudoPath = findExe("sudo")
+  let doasPath = findExe("doas")
+
+  if sudoPath.len > 0:
+    updateStatus("Mot de passe sudo requis...")
+    let code = execCmd(fmt"{quoteShell(sudoPath)} {cmd}")
+    return code == 0
+  elif doasPath.len > 0:
+    updateStatus("Mot de passe doas requis...")
+    let code = execCmd(fmt"{quoteShell(doasPath)} {cmd}")
+    return code == 0
+  else:
+    updateStatus("Mot de passe root requis (su)...")
+    let code = execCmd(fmt"su -c {quoteShell(cmd)}")
+    return code == 0
+
+proc tryInstallImageMagick(): bool =
+  if findExe("apt-get").len > 0:
+    return runPrivileged("apt-get install -y imagemagick")
+  elif findExe("pacman").len > 0:
+    return runPrivileged("pacman -S --noconfirm imagemagick")
+  elif findExe("dnf").len > 0:
+    return runPrivileged("dnf install -y ImageMagick")
+  elif findExe("pkg").len > 0:
+    return runPrivileged("pkg install -y ImageMagick7")
+  elif findExe("xbps-install").len > 0:
+    return runPrivileged("xbps-install -Sy imagemagick")
+  elif findExe("emerge").len > 0:
+    return runPrivileged("emerge -q media-gfx/imagemagick")
+  elif findExe("zypper").len > 0:
+    return runPrivileged("zypper --non-interactive install imagemagick")
+  elif findExe("apk").len > 0:
+    return runPrivileged("apk add --no-progress imagemagick")
+  else:
+    updateStatus("Gestionnaire de paquets non supporté pour l'installation auto.")
+    return false
+
 proc performInstallation() {.thread.} =
   let homeDir = getHomeDir()
   let destDir = homeDir / ".ceroclient"
@@ -247,26 +285,13 @@ proc performInstallation() {.thread.} =
     var magickPath = findExe("magick")
     var convertPath = findExe("convert")
 
-    # --- NOUVEAUTÉ : Installation automatique d'ImageMagick si manquant ---
     if magickPath.len == 0 and convertPath.len == 0:
       updateStatus("ImageMagick introuvable. Tentative d'installation automatique...")
-      if findExe("apt-get").len > 0:
-        let (groupsOut, _) = execCmdEx("groups")
-        let inSudo = "sudo" in groupsOut.splitWhitespace()
-
-        if inSudo:
-          updateStatus("Mot de passe utilisateur requis (sudo)...")
-          discard execCmd("sudo apt-get install -y imagemagick")
-        else:
-          updateStatus("Mot de passe root requis (su)...")
-          discard execCmd("su -c \"apt-get install -y imagemagick\"")
-
-        # On revérifie s'ils ont été installés
+      if tryInstallImageMagick():
         magickPath = findExe("magick")
         convertPath = findExe("convert")
       else:
-        updateStatus("Avertissement : apt-get introuvable pour installer automatiquement.")
-    # ---------------------------------------------------------------------
+        updateStatus("Échec de l'installation automatique d'ImageMagick.")
 
     if magickPath.len > 0:
       discard execCmd(fmt"{quoteShell(magickPath)} {quoteShell(iconIco)} -resize 256x256 {quoteShell(iconFile)} 2>/dev/null")
