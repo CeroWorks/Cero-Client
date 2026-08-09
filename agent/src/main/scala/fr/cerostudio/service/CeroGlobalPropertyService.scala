@@ -4,15 +4,10 @@ import org.spongepowered.asm.service.{IGlobalPropertyService, IPropertyKey}
 
 import scala.collection.concurrent.TrieMap
 
-/**
- * Implémentation Scala du service de propriétés globales Mixin.
- * Utilise un TrieMap (concurrent, thread-safe) au lieu du ConcurrentHashMap Java.
- */
 class CeroGlobalPropertyService extends IGlobalPropertyService {
 
   private val properties = TrieMap[String, Object]()
 
-  /** Représentation type-safe d'une clé de propriété */
   private final class Key(val name: String) extends IPropertyKey {
     override def equals(obj: Any): Boolean = obj match {
       case other: Key => other.name == this.name

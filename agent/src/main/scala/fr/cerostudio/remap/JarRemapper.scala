@@ -7,15 +7,6 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.util.jar.Manifest
 import scala.util.Try
 
-/**
- * Remappeur de JAR utilisant TinyRemapper.
- *
- * Version Scala avec :
- *   - Using.Manager pour la gestion automatique des ressources
- *   - Either pour la gestion d'erreurs fonctionnelle
- *   - Fonctions pures séparées de l'I/O
- *   - Nettoyage automatique des signatures Mojang
- */
 object JarRemapper {
 
   def main(args: Array[String]): Unit = {
@@ -40,10 +31,6 @@ object JarRemapper {
     }
   }
 
-  /**
-   * Exécute le remapping complet. Retourne Either[String, Unit] pour
-   * un rapport d'erreur propre.
-   */
   def run(input: Path, output: Path, mapping: Path): Either[String, Unit] = {
     for {
       _      <- Try(Files.deleteIfExists(output)).toEither.left.map(_.getMessage)
@@ -72,10 +59,6 @@ object JarRemapper {
     }.toEither.left.map(_.getMessage)
   }
 
-  /**
-   * Nettoie les signatures Mojang (SF, RSA, DSA, EC) et vide les entrées
-   * du manifeste tout en conservant les attributs principaux.
-   */
   private def stripSignatureAndManifest(jarPath: Path): Either[String, Unit] = {
     System.out.println("[CeroRemapper] Nettoyage des signatures Mojang...")
 
@@ -98,7 +81,6 @@ object JarRemapper {
             }
           })
 
-          // Nettoyer le manifeste
           val manifestPath = metaInf.resolve("MANIFEST.MF")
           if (Files.exists(manifestPath)) {
             val is = Files.newInputStream(manifestPath)

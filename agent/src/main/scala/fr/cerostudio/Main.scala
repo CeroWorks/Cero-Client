@@ -9,22 +9,8 @@ import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 import scala.util.{Try, Success, Failure}
 
-/**
- * Point d'entrée principal du launcher CeroClient.
- *
- * Analyse les arguments JVM, instancie le RemappingClassLoader approprié,
- * et lance le vrai mainclass de Minecraft avec les arguments transférés.
- */
 object Main {
 
-  /**
-   * Arguments personnalisés reconnus par CeroClient :
-   *   --realMainClass <fqcn>   La classe main réelle de MC à lancer
-   *   --ceroMcVersion <ver>    La version MC (ex. 1.12.2, 1.21.4, 25w02a)
-   *   --ceroDebug              Active les logs de debug
-   *   --ceroLegacy            Force le mode legacy (LWJGL 2)
-   *   --ceroModern            Force le mode modern (LWJGL 3)
-   */
   case class LaunchConfig(
     realMainClass: String,
     mcVersion: String,
@@ -61,6 +47,16 @@ object Main {
 
     val classpathUrls = extractClasspathUrls()
 
+    val rawClassPath = System.getProperty("java.class.path", "<vide>")
+    System.out.println(s"[CeroClient][DIAG] java.class.path brut = $rawClassPath")
+    System.out.println(s"[CeroClient][DIAG] ${classpathUrls.length} URL(s) de classpath résolue(s):")
+    classpathUrls.foreach(u => System.out.println(s"[CeroClient][DIAG]   - $u"))
+    val clientJarUrl = classpathUrls.find(_.toString.contains("client.jar"))
+    clientJarUrl match {
+      case Some(u) => System.out.println(s"[CeroClient][DIAG] client.jar trouvé dans classpathUrls: $u")
+      case None    => System.err.println("[CeroClient][DIAG] AUCUNE URL contenant 'client.jar' trouvée dans classpathUrls !")
+    }
+
     val remapper = new RemappingClassLoader(
       classpathUrls,
       getClass.getClassLoader.getParent,
@@ -73,7 +69,6 @@ object Main {
 
     launchMain(config.realMainClass, forwardedArgs.toArray, remapper) match {
       case Success(_) =>
-        // Le main de MC s'est terminé normalement
       case Failure(e) =>
         System.err.println(s"[CeroClient] Erreur lors du lancement de ${config.realMainClass}")
         e.printStackTrace()
@@ -81,12 +76,6 @@ object Main {
     }
   }
 
-  // ── Parsing des arguments ──────────────────────────────────────────
-
-  /**
-   * Parse la liste d'arguments. Retourne la config + les args à transférer.
-   * Approche tail-rec avec accumulateur pour les args transférés.
-   */
   @tailrec
   private def parseArgs(args: List[String], config: LaunchConfig, acc: List[String]): (LaunchConfig, List[String]) = args match {
     case Nil => (config, acc.reverse)
@@ -110,8 +99,6 @@ object Main {
       parseArgs(rest, config, arg :: acc)
   }
 
-  // ── Extraction du classpath ────────────────────────────────────────
-
   private def extractClasspathUrls(): Array[URL] = {
     val cp   = System.getProperty("java.class.path", "")
     val sep  = System.getProperty("path.separator", ":")
@@ -122,16 +109,12 @@ object Main {
     }.toArray
   }
 
-  // ── Lancement du main MC ───────────────────────────────────────────
-
   private def launchMain(mainClassName: String, args: Array[String], cl: ClassLoader): Try[Unit] = Try {
     val mainClass  = Class.forName(mainClassName, true, cl)
     val mainMethod = mainClass.getMethod("main", classOf[Array[String]])
     mainMethod.setAccessible(true)
     mainMethod.invoke(null, args.asInstanceOf[AnyRef])
   }
-
-  // ── Utilitaire ─────────────────────────────────────────────────────
 
   private def flavorName(flavor: VersionSupport.McFlavor): String = flavor match {
     case VersionSupport.Legacy  => "Legacy (LWJGL 2)"

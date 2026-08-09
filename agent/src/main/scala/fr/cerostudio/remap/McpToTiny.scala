@@ -12,18 +12,8 @@ import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 import scala.util.{Try, Using, Failure, Success}
 
-/**
- * Convertisseur MCP (TSRG + CSV) → Tiny v2.
- *
- * Version Scala utilisant :
- *   - Case classes pour la modélisation des données
- *   - Pattern matching sur les lignes du TSRG
- *   - Collections mutables locales pour la performance
- *   - Try/Either pour la gestion d'erreurs explicite
- */
 object McpToTiny {
 
-  /** Entrée de classe avec mappings de méthodes et champs */
   case class ClassEntry(
     obfName: String,
     srgName: String,
@@ -77,8 +67,6 @@ object McpToTiny {
     writeTiny(Paths.get(outPath), classes, methodNames, fieldNames, fieldDescs)
   }
 
-  // ── Chargement des field descriptors depuis le JAR ─────────────────
-
   def loadFieldDescriptors(jarPath: Path): Map[String, Map[String, String]] = {
     val result = mutable.Map[String, Map[String, String]]()
 
@@ -110,17 +98,12 @@ object McpToTiny {
     )
   }
 
-  // ── Recherche du fichier TSRG ──────────────────────────────────────
-
   def findTsrg(mcpDir: Path): Option[Path] = {
     val candidates = Seq("joined.tsrg", "client.tsrg", "server.tsrg")
     val configDir  = mcpDir.resolve("config")
-
-    // Chercher en priorité dans config/
     candidates.iterator.map(configDir.resolve).find(Files.isRegularFile(_)) match {
       case Some(p) => Some(p)
       case None =>
-        // Fallback: scan récursif via Files.walk
         val stream = Files.walk(mcpDir)
         try {
           val it = stream.iterator()
@@ -135,8 +118,6 @@ object McpToTiny {
         }
     }
   }
-
-  // ── Parsing TSRG ───────────────────────────────────────────────────
 
   def parseTsrg(tsrgPath: Path): Map[String, ClassEntry] = {
     val source = scala.io.Source.fromFile(tsrgPath.toFile, StandardCharsets.UTF_8.name())
@@ -158,16 +139,14 @@ object McpToTiny {
             val ce = current.get
             parts.length match {
               case 3 =>
-                // Méthode: obfMethod obfDesc srgMethod
                 val key = parts(0) + parts(1)
                 ce.methods(key) = parts(2)
                 ce.methodDescs(key) = parts(1)
 
               case 2 =>
-                // Champ: obfField srgField
                 ce.fields(parts(0)) = parts(1)
 
-              case _ => // Ignorer
+              case _ =>
             }
           }
         }
@@ -178,8 +157,6 @@ object McpToTiny {
       source.close()
     }
   }
-
-  // ── Chargement CSV ──────────────────────────────────────────────────
 
   def loadCsvMapping(csvPath: Path): Map[String, String] = {
     if (!Files.isRegularFile(csvPath)) return Map.empty
@@ -218,8 +195,6 @@ object McpToTiny {
   private def indexOf(arr: Array[String], target: String): Int =
     arr.indexWhere(_.trim.equalsIgnoreCase(target))
 
-  // ── Écriture Tiny v1 ────────────────────────────────────────────────
-
   def writeTiny(
     outPath: Path,
     classes: Map[String, ClassEntry],
@@ -241,7 +216,6 @@ object McpToTiny {
 
         val classFieldDescs = fieldDescs.getOrElse(ce.obfName, Map.empty)
 
-        // Champs
         for ((obfField, srgField) <- ce.fields) {
           val named = fieldNames.getOrElse(srgField, srgField)
           classFieldDescs.get(obfField) match {
@@ -253,7 +227,6 @@ object McpToTiny {
           }
         }
 
-        // Méthodes
         for ((key, srgMethod) <- ce.methods) {
           val obfDesc = ce.methodDescs.getOrElse(key, "")
           if (obfDesc.isEmpty) {

@@ -1,0 +1,14 @@
+{
+  "id": "1.7.10",
+  "flavor": "legacy",
+  "mcJar": "1.7.10-named.jar",
+  "tinyMappings": "1.7.10.tiny",
+  "mixinConfigs": ["mixins.cero.v1_legacy.json"],
+  "logicalMethods": {
+    "window.setTitle": {
+      "class": "net.minecraft.client.Minecraft",
+      "method": "func_71384_a",
+      "desc": "(Lnet/minecraft/client/main/GameConfiguration;)V"
+    }
+  }
+}

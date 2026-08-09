@@ -6,18 +6,8 @@ import scala.jdk.CollectionConverters._
 import scala.collection.mutable
 import scala.util.matching.Regex
 
-/**
- * Convertisseur Proguard → Tiny v1.
- *
- * Version Scala utilisant :
- *   - Regex compilées comme vals
- *   - Map immutable pour les primitives
- *   - Pattern matching sur les matchers
- *   - StringBuilder avec interpolation
- */
 object ProguardToTiny {
 
-  /** Mapping type Java → descripteur JVM */
   private val Primitives: Map[String, String] = Map(
     "void"    -> "V",
     "boolean" -> "Z",
@@ -29,8 +19,6 @@ object ProguardToTiny {
     "float"   -> "F",
     "double"  -> "D"
   )
-
-  // ── Regex de parsing Proguard ───────────────────────────────────────
 
   private val ClassLineRegex: Regex =
     """^([\w.$]+)\s*->\s*([\w.$]+):\s*$""".r
@@ -64,16 +52,14 @@ object ProguardToTiny {
   def convert(input: Path, output: Path): Unit = {
     val lines = Files.readAllLines(input, StandardCharsets.UTF_8).asScala.toList
 
-    // 1ère passe : construire la table classDeobfToObf
     val classDeobfToObf = mutable.HashMap[String, String]()
     for (line <- lines; if !line.startsWith("#")) {
       line match {
         case ClassLineRegex(deobf, obf) => classDeobfToObf(deobf) = obf
-        case _ => // Ignorer
+        case _ =>
       }
     }
 
-    // 2ème passe : générer le Tiny
     val sb = new StringBuilder()
     sb.append("v1\tofficial\tnamed\n")
 
@@ -105,14 +91,12 @@ object ProguardToTiny {
             .append(obfName).append('\t')
             .append(deobfName).append('\n')
 
-        case _ => // Ignorer les lignes non-matchées
+        case _ =>
       }
     }
 
     Files.write(output, sb.toString.getBytes(StandardCharsets.UTF_8))
   }
-
-  // ── Construction des descripteurs ───────────────────────────────────
 
   private def buildMethodDescriptor(
     retType: String,
@@ -130,7 +114,6 @@ object ProguardToTiny {
   }
 
   private def toDescriptor(typeStr: String, classMap: Map[String, String]): String = {
-    // Gérer les tableaux (ex. "int[]", "String[][]")
     var t = typeStr
     var arrayDepth = 0
     while (t.endsWith("[]")) {

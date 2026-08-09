@@ -1,0 +1,15 @@
+{
+  "id": "1.12.2",
+  "flavor": "legacy",
+  "extends": "1.7.10",
+  "mcJar": "1.12.2-named.jar",
+  "tinyMappings": "1.12.2.tiny",
+  "mixinConfigs": ["mixins.cero.v1_legacy.json"],
+  "logicalMethods": {
+    "window.setTitle": {
+      "class": "net.minecraft.client.Minecraft",
+      "method": "func_175609_am",
+      "desc": "()V"
+    }
+  }
+}

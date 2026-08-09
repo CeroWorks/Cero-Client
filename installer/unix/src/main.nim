@@ -53,7 +53,7 @@ proc gtk_box_new(orientation: cint, spacing: cint): ptr GtkWidget
   {.importc, header: "<gtk/gtk.h>".}
 proc gtk_button_new_with_label(label: cstring): ptr GtkWidget
   {.importc, header: "<gtk/gtk.h>".}
-proc gtk_label_new(text: cstring): ptr GtkWidget
+proc gtk_label_new(text: cstring): ptr GtkWidget): cint
   {.importc, header: "<gtk/gtk.h>".}
 proc gtk_label_set_text(label: ptr GtkLabel, text: cstring)
   {.importc, header: "<gtk/gtk.h>".}
@@ -244,8 +244,30 @@ proc performInstallation() {.thread.} =
 
   if iconOk:
     updateStatus("Conversion de l'icône...")
-    let magickPath = findExe("magick")
-    let convertPath = findExe("convert")
+    var magickPath = findExe("magick")
+    var convertPath = findExe("convert")
+
+    # --- NOUVEAUTÉ : Installation automatique d'ImageMagick si manquant ---
+    if magickPath.len == 0 and convertPath.len == 0:
+      updateStatus("ImageMagick introuvable. Tentative d'installation automatique...")
+      if findExe("apt-get").len > 0:
+        let (groupsOut, _) = execCmdEx("groups")
+        let inSudo = "sudo" in groupsOut.splitWhitespace()
+
+        if inSudo:
+          updateStatus("Mot de passe utilisateur requis (sudo)...")
+          discard execCmd("sudo apt-get install -y imagemagick")
+        else:
+          updateStatus("Mot de passe root requis (su)...")
+          discard execCmd("su -c \"apt-get install -y imagemagick\"")
+
+        # On revérifie s'ils ont été installés
+        magickPath = findExe("magick")
+        convertPath = findExe("convert")
+      else:
+        updateStatus("Avertissement : apt-get introuvable pour installer automatiquement.")
+    # ---------------------------------------------------------------------
+
     if magickPath.len > 0:
       discard execCmd(fmt"{quoteShell(magickPath)} {quoteShell(iconIco)} -resize 256x256 {quoteShell(iconFile)} 2>/dev/null")
     elif convertPath.len > 0:

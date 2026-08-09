@@ -16,13 +16,6 @@ import java.net.URL
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try, Using}
 
-/**
- * Implémentation Scala complète du service Mixin pour le mode ClassLoader.
- *
- * Implémente plusieurs interfaces Mixin en un seul objet Scala grâce au
- * pattern « trait forwarding ». C'est plus concis que l'équivalent Java
- * avec 7 interfaces séparées.
- */
 class CeroMixinService
     extends IMixinService
     with IClassProvider
@@ -36,8 +29,6 @@ class CeroMixinService
   private var transformer: IMixinTransformer = _
   private val primaryContainer: IContainerHandle =
     new ContainerHandleVirtual("CeroClient")
-
-  // ── IMixinService ───────────────────────────────────────────────────
 
   override def getName: String = "Cero ClassLoader Service (Scala)"
 
@@ -53,9 +44,6 @@ class CeroMixinService
     case _ =>
   }
 
-  /**
-   * Crée le transformer Mixin une seule fois (lazy init).
-   */
   def getTransformer: IMixinTransformer = {
     if (transformer == null && transformerFactory != null) {
       Try(transformerFactory.createTransformer()) match {
@@ -100,11 +88,7 @@ class CeroMixinService
   override def getMaxCompatibilityLevel: MixinEnvironment.CompatibilityLevel =
     MixinEnvironment.CompatibilityLevel.JAVA_17
 
-  // ── Logging ────────────────────────────────────────────────────────
-
   override def getLogger(name: String): ILogger = new CeroLogger(name)
-
-  // ── IClassProvider ─────────────────────────────────────────────────
 
   override def getResourceAsStream(name: String): InputStream =
     getContextClassLoader.getResourceAsStream(name)
@@ -119,8 +103,6 @@ class CeroMixinService
 
   override def findAgentClass(name: String, initialize: Boolean): Class[_] =
     Class.forName(name, initialize, getContextClassLoader)
-
-  // ── IClassBytecodeProvider ─────────────────────────────────────────
 
   override def getClassNode(name: String): ClassNode = {
     getContextClassLoader match {
@@ -141,15 +123,11 @@ class CeroMixinService
   override def getClassNode(name: String, runTransformers: Boolean): ClassNode =
     getClassNode(name)
 
-  // ── ITransformerProvider ────────────────────────────────────────────
-
   override def getTransformers: java.util.Collection[ITransformer] = java.util.Collections.emptyList()
 
   override def getDelegatedTransformers: java.util.Collection[ITransformer] = java.util.Collections.emptyList()
 
   override def addTransformerExclusion(name: String): Unit = ()
-
-  // ── IClassTracker ───────────────────────────────────────────────────
 
   override def registerInvalidClass(className: String): Unit = ()
 
@@ -157,24 +135,16 @@ class CeroMixinService
 
   override def getClassRestrictions(className: String): String = ""
 
-  // ── IMixinAuditTrail ──────────────────────────────────────────────
-
   override def onApply(className: String, mixinName: String): Unit = ()
 
   override def onPostProcess(className: String): Unit = ()
 
   override def onGenerate(className: String, proxyName: String): Unit = ()
 
-  // ── Utilitaires ────────────────────────────────────────────────────
-
   private def getContextClassLoader: ClassLoader =
     Thread.currentThread().getContextClassLoader
 }
 
-/**
- * Logger Mixin simplifié en Scala. Utilise le pattern matching sur le Level
- * pour un code concis et lisible.
- */
 class CeroLogger(loggerName: String) extends ILogger {
 
   private def prefix(level: String): String = s"[$level] [$loggerName] "

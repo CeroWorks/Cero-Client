@@ -41,6 +41,9 @@ dependencies {
     // Guava
     implementation("com.google.guava:guava:32.1.3-jre")
 
+    // Gson — parsing des manifestes de version (fr.cerostudio.version)
+    implementation("com.google.code.gson:gson:2.11.0")
+
     // Tests
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")

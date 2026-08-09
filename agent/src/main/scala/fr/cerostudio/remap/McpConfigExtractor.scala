@@ -6,14 +6,6 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.util.zip.{ZipEntry, ZipFile}
 import scala.util.{Using, Try, Success, Failure}
 
-/**
- * Extracteur de configurations MCP depuis un zip.
- *
- * Version Scala avec :
- *   - Protection anti zip-slip
- *   - Utilisation de Using pour la gestion automatique des ressources
- *   - Logs détaillés en français
- */
 object McpConfigExtractor {
 
   def main(args: Array[String]): Unit = {
@@ -39,10 +31,6 @@ object McpConfigExtractor {
     }
   }
 
-  /**
-   * Extrait un zip avec protection anti zip-slip et retourne le nombre
-   * de fichiers extraits.
-   */
   def extractZip(zipPath: String, destDir: String): Try[Int] = {
     val zipFile = new File(zipPath)
     if (!zipFile.isFile) {
@@ -60,7 +48,6 @@ object McpConfigExtractor {
         val entry = entries.nextElement()
         val outPath = destPath.resolve(entry.getName).normalize
 
-        // Protection anti zip-slip
         if (!outPath.startsWith(destPath)) {
           System.err.println(s"[McpConfigExtractor] Entrée suspecte ignorée (zip-slip): ${entry.getName}")
         } else if (entry.isDirectory) {
