@@ -2,7 +2,7 @@
 {.passL: gorge("pkg-config --libs gtk4").}
 {.passL: gorge("pkg-config --libs gmodule-2.0").}
 
-import std/[httpclient, os, strutils, strformat, osproc, locks, sequtils]
+import std/[httpclient, os, strutils, strformat, osproc, locks, streams]
 
 const OS_SUFFIX =
   when defined(linux):     "linux"
