@@ -8,9 +8,9 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 public class MixinLegacyTitle {
 
     @ModifyArg(
-        method = "func_71384_a|func_175609_am",
+        method = "func_71384_a|func_175609_am", // Magique : couvre 1.7.10, 1.8.9 ET 1.12.2 !
         at = @At(
-            value = "INVOKE",
+            value = "INVOKE", 
             target = "Lorg/lwjgl/opengl/Display;setTitle(Ljava/lang/String;)V"
         ),
         index = 0

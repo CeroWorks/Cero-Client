@@ -3,10 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "../../include/logger.h"
+#include "../../include/core/logger.h"
 #include "../../include/utils/file_utils.h"
 #include "../../include/utils/version_manifest.h"
-#include "../../include/download.h"
+#include "../../include/net/download.h"
 #include "../../include/utils/process.h"
 #include "../../include/utils/deobfuscation.h"
 

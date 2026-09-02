@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
-#include "../include/logger.h"
+#include "../include/core/logger.h"
 
 #ifdef _WIN32
     #include <direct.h>

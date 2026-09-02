@@ -1,5 +1,5 @@
 (function() {
-    const WS_URL = 'ws://www.arcadiafr.fr:3134/ws';
+    const wsUrl = window.Cero.config.wsUrl;
 
     let ws = null;
     let reconnectTimer = null;
@@ -51,7 +51,7 @@
             }
 
             try {
-                ws = new WebSocket(WS_URL + '?token=' + encodeURIComponent(token));
+                ws = new WebSocket(wsUrl + '?token=' + encodeURIComponent(token));
             } catch (e) {
                 err('WebSocket ctor failed:', e && e.message ? e.message : String(e));
                 scheduleReconnect(5000);

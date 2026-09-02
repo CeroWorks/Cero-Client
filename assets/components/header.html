@@ -1,5 +1,4 @@
 <link rel="stylesheet" href="../style/header.css">
-<script src="../js/header.js"></script>
 
 <header class="relative z-50 app-drag flex items-center px-6 pt-5 pb-4 fade-up">
     
@@ -32,12 +31,6 @@
     </div>
 
     <div class="flex items-center gap-2 flex-shrink-0">
-        <button id="support-btn" class="support-btn nodrag" onclick="openSupportLink()">
-            Soutenir Cero Client
-        </button>
-        <span id="supporter-badge" class="hidden nodrag">
-            <span style="margin-right:4px;">✦</span> Supporter
-        </span>
         <span id="playerName" class="text-xs font-semibold text-[var(--text-muted)] mr-2">—</span>
         
         <button class="wc-btn nodrag" onclick="window.minimize_window && window.minimize_window()" aria-label="Réduire">
@@ -89,70 +82,30 @@
                         playerNameSpan.innerText = currentUserPseudo;
                     }
                 } else {
-                    console.warn("⚠️ Le pseudo est introuvable dans ce JSON :", account);
+                    console.warn("Le pseudo est introuvable dans ce JSON :", account);
                 }
 
                 if (uuid) {
                     currentUserUuid = uuid;
-                    checkSupporterStatus(uuid);
                 } else {
-                    console.warn("⚠️ L'uuid est introuvable dans ce JSON :", account);
+                    console.warn("L'uuid est introuvable dans ce JSON :", account);
                 }
 
             } catch (error) {
-                console.error("❌ Erreur lors de la lecture du compte :", error);
+                console.error("Erreur lors de la lecture du compte :", error);
             }
         } else {
-            console.error("❌ window.getAccount n'est pas injecté par le C.");
-        }
-    }
-
-async function checkSupporterStatus(uuid) {
-        try {
-            const res = await fetch(`https://www.cerostudio.fr/api/check-supporter.php?uuid=${encodeURIComponent(uuid)}`);
-            if (!res.ok) return; 
-            const data = await res.json();
-
-            if (data.supporter) {
-                const btn = document.getElementById('support-btn');
-                const badge = document.getElementById('supporter-badge');
-                const pseudo = document.getElementById('playerName');
-                
-                if (btn) btn.style.display = 'none';
-                if (badge) badge.classList.remove('hidden');
-                if (pseudo) {
-                    pseudo.style.setProperty('color', '#f472b6', 'important');
-                }
-            }
-        } catch (err) {
-            console.warn("Vérification supporter impossible (pas bloquant) :", err);
+            console.error("window.getAccount n'est pas injecté par le C.");
         }
     }
 
     fetchUserProfile();
-
-    function openSupportLink() {
-        const baseUrl = "https://cerostudio.fr/ceroclient/supporter";
-        const url = `${baseUrl}?pseudo=${encodeURIComponent(currentUserPseudo)}`;
-
-        if (window.shell_open) {
-            window.shell_open(url);
-        } else {
-            window.open(url, "_blank");
-        }
-    }
 
     document.addEventListener('DOMContentLoaded', function() {
         const isAppContext = document.getElementById('appTab-jouer') !== null;
         if (!isAppContext) {
             const nav = document.querySelector('.app-tabs');
             if (nav) nav.style.display = 'none';
-
-            const supportBtn = document.getElementById('support-btn');
-            if (supportBtn) supportBtn.style.display = 'none';
-
-            const supporterBadge = document.getElementById('supporter-badge');
-            if (supporterBadge) supporterBadge.style.display = 'none';
         }
     });
 </script>
@@ -191,24 +144,6 @@ async function checkSupporterStatus(uuid) {
         box-shadow: 0 1px 4px rgba(0,0,0,0.2);
     }
     .app-tab svg { flex-shrink: 0; }
-
-    #supporter-badge {
-        font-size: 10px;
-        font-weight: 700;
-        text-transform: uppercase;
-        padding: 3px 8px;
-        border-radius: 4px;
-        background: linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(168, 85, 247, 0.15));
-        border: 1px solid rgba(236, 72, 153, 0.3);
-        color: #f472b6;
-        margin-right: 4px;
-        cursor: default;
-        backdrop-filter: blur(4px);
-        display: inline-flex;
-        align-items: center;
-        letter-spacing: 0.05em;
-        box-shadow: 0 0 10px rgba(236, 72, 153, 0.1);
-    }
 
     .hidden {
         display: none !important;

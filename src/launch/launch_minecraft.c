@@ -1,0 +1,171 @@
+#include "../../include/launch/launch_minecraft.h"
+#include "../../include/launch/launch_ctx.h"
+#include "../../include/launch/fabric.h"
+#include "../../include/launch/account.h"
+#include "../../include/launch/version_step.h"
+#include "../../include/launch/cero_agent.h"
+#include "../../include/launch/deobfuscation_step.h"
+#include "../../include/launch/java_step.h"
+#include "../../include/launch/classpath.h"
+#include "../../include/launch/jvm_args.h"
+#include "../../include/launch/process_step.h"
+#include "../../include/config/config.h"
+#include "../../include/utils/version_manifest.h"
+#include "../../include/utils/libraries.h"
+#include "../../include/utils/assets.h"
+#include "../../include/core/logger.h"
+#include <stdio.h>
+#include <string.h>
+
+void launch_minecraft(const char* version,
+                      launch_progress_cb cb, void* userdata) {
+    LaunchCtx ctx;
+    ctx.cb = cb;
+    ctx.userdata = userdata;
+
+    char client_dir[MAX_PATH_SIZE];
+    snprintf(client_dir, sizeof(client_dir), "%s", client_path);
+
+    char mc_version[64] = "";
+    char fabric_loader[64] = "";
+    int is_fabric = parse_fabric_spec(version, mc_version, sizeof(mc_version),
+                                      fabric_loader, sizeof(fabric_loader));
+    const char* vanilla_version = is_fabric ? mc_version : version;
+
+    char username[128];
+    char uuid[64];
+    char token[2048];
+    if (!resolve_account(&ctx, client_dir, username, sizeof(username),
+                         uuid, sizeof(uuid), token, sizeof(token))) {
+        return;
+    }
+
+    char json_dest[MAX_PATH_SIZE];
+    char jar_dest[MAX_PATH_SIZE];
+    if (!resolve_version_json(&ctx, client_dir, vanilla_version,
+                              json_dest, sizeof(json_dest),
+                              jar_dest, sizeof(jar_dest))) {
+        return;
+    }
+
+    char cero_jar_path[MAX_PATH_SIZE];
+    int has_cero = extract_cero_agent(client_dir, cero_jar_path, sizeof(cero_jar_path));
+
+    char mapped_jar[MAX_PATH_SIZE];
+    if (!resolve_deobfuscated_jar(&ctx, client_dir, vanilla_version,
+                                  jar_dest, json_dest, mapped_jar, sizeof(mapped_jar))) {
+        return;
+    }
+
+    launch_report(&ctx, "Téléchargement des librairies...", 42);
+    download_libraries(client_dir, vanilla_version);
+
+    launch_report(&ctx, "Extraction des natives...", 55);
+    extract_all_natives(client_dir, vanilla_version);
+
+    launch_report(&ctx, "Téléchargement des assets...", 68);
+    download_assets(client_dir, vanilla_version);
+
+    char java_exe[MAX_PATH_SIZE];
+    if (!resolve_java_runtime(&ctx, client_dir, vanilla_version, java_exe, sizeof(java_exe))) {
+        return;
+    }
+
+    launch_report(&ctx, "Préparation du lancement...", 90);
+    VmJVal* root = vm_load_json(json_dest);
+    if (!root) {
+        launch_report(&ctx, "Erreur : lecture version JSON !", -1);
+        log_msg("error", "Cannot read version json for launch\n");
+        return;
+    }
+
+    VmJVal* fabric_root = NULL;
+    char fabric_id[128] = "";
+    char fabric_main[128] = "";
+
+    if (is_fabric) {
+        launch_report(&ctx, "Téléchargement du profil Fabric...", 92);
+        char fabric_json_path[MAX_PATH_SIZE];
+        if (!fetch_fabric_profile(client_dir, mc_version, fabric_loader,
+                                  fabric_id, sizeof(fabric_id),
+                                  fabric_json_path, sizeof(fabric_json_path))) {
+            launch_report(&ctx, "Erreur : profil Fabric introuvable !", -1);
+            log_msg("error", "Cannot fetch Fabric profile for %s\n", mc_version);
+            vm_free(root);
+            return;
+        }
+        fabric_root = vm_load_json(fabric_json_path);
+        if (!fabric_root) {
+            launch_report(&ctx, "Erreur : lecture profil Fabric !", -1);
+            vm_free(root);
+            return;
+        }
+        const char* fmc = vm_gets(fabric_root, "mainClass");
+        if (fmc) snprintf(fabric_main, sizeof(fabric_main), "%s", fmc);
+    }
+
+    const char* game_main_class = (fabric_main[0]) ? fabric_main
+                                                   : vm_gets(root, "mainClass");
+    const char* asset_index = NULL;
+    VmJVal* ai = vm_get(root, "assetIndex");
+    if (ai) asset_index = vm_gets(ai, "id");
+    if (!asset_index) asset_index = vm_gets(root, "assets");
+    if (!asset_index) asset_index = "legacy";
+
+    if (!game_main_class) {
+        launch_report(&ctx, "Erreur : mainClass manquant !", -1);
+        log_msg("error", "No mainClass in version json\n");
+        if (fabric_root) vm_free(fabric_root);
+        vm_free(root);
+        return;
+    }
+
+    static CpLib libs_arr[512];
+    int libs_count = 0;
+
+    if (fabric_root) {
+        launch_report(&ctx, "Téléchargement des librairies Fabric...", 95);
+        collect_fabric_libs(client_dir, fabric_root, libs_arr, &libs_count, 512);
+    }
+    collect_vanilla_libs(client_dir, root, libs_arr, &libs_count, 512);
+
+    download_pending_libraries(libs_arr, libs_count);
+
+    char client_jar[MAX_PATH_SIZE];
+    if (mapped_jar[0]) {
+        snprintf(client_jar, sizeof(client_jar), "%s", mapped_jar);
+    } else {
+        snprintf(client_jar, sizeof(client_jar),
+                 "%s/versions/%s/%s.jar", client_dir, vanilla_version, vanilla_version);
+    }
+
+    static char classpath[65536];
+    build_classpath(classpath, sizeof(classpath), has_cero, cero_jar_path,
+                    libs_arr, libs_count, client_jar);
+
+    const char* version_id_for_args = is_fabric ? fabric_id : vanilla_version;
+
+    LaunchParams lp;
+    lp.java_exe = java_exe;
+    lp.classpath = classpath;
+    lp.game_main_class = game_main_class;
+    lp.has_cero = has_cero;
+    lp.username = username;
+    lp.version_id_for_args = version_id_for_args;
+    lp.client_dir = client_dir;
+    lp.asset_index = asset_index;
+    lp.uuid = uuid;
+    lp.token = token;
+    lp.vanilla_version = vanilla_version;
+    lp.bridge_port = local_bridge_port;
+
+    const char* argv[96];
+    char bridge_port_str[16];
+    build_launch_argv(&lp, argv, 96, bridge_port_str, sizeof(bridge_port_str));
+
+    LaunchUserdata* ud = (LaunchUserdata*)userdata;
+    run_game_process(&ctx, ud, java_exe, argv, version, username, is_fabric);
+
+    if (fabric_root) vm_free(fabric_root);
+    vm_free(root);
+}

@@ -1,30 +1,3 @@
-const canvas = document.getElementById('grainCanvas');
-const ctx = canvas.getContext('2d');
-let width, height;
-
-const playerName = document.getElementById('playerName');
-if (playerName) playerName.remove();
-
-function resize() {
-    width  = canvas.width  = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-}
-window.addEventListener('resize', resize);
-resize();
-
-function animateGrain() {
-    const imageData = ctx.createImageData(width, height);
-    const data = imageData.data;
-    for (let i = 0; i < data.length; i += 4) {
-        const val = Math.random() * 255;
-        data[i] = data[i+1] = data[i+2] = val;
-        data[i+3] = 255;
-    }
-    ctx.putImageData(imageData, 0, 0);
-    requestAnimationFrame(animateGrain);
-}
-animateGrain();
-
 async function loginWithMicrosoft() {
     const btnSpan = document.querySelector('.ms-btn span');
     if (!btnSpan) return;

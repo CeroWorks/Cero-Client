@@ -12,6 +12,7 @@ android/
 tests/
 third_party/
 bak/
+node_modules/
 
 deploy.pl
 
@@ -26,3 +27,7 @@ __pycache__/
 *.pyc
 
 *.zip
+
+CeroClient
+
+WebKitWebProcess.core

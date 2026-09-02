@@ -482,7 +482,7 @@ window.confirmLogout = function() {
 
     window.logout_account().then(function() {
         closeLogoutModal();
-        window.location.href = 'login.html'; // adapte le chemin relatif selon où se trouve index.html
+        window.location.href = 'login.html';
     }).catch(function(e) {
         console.error('logout_account:', e);
         btn.disabled = false;
@@ -541,7 +541,7 @@ window.confirmLogout = function() {
         if (s.accentColor) {
             savedAccentColor = s.accentColor;
             const dot = document.querySelector('.theme-dot[style*="' + s.accentColor + '"]');
-            setTheme(s.accentColor, dot, false); // persist=false : ne déclenche pas dirty
+            setTheme(s.accentColor, dot, false);
         } else if (isDiscard) {
             const firstDot = document.querySelector('.theme-dot');
             setTheme(savedAccentColor || '#3b82f6', firstDot, false);
@@ -565,7 +565,7 @@ window.confirmLogout = function() {
 
     window.confirmLeaveSettings = function(onConfirmLeave) {
         if (!dirty) { onConfirmLeave(); return; }
-        pendingSection = null; // pas de changement de section interne, juste un départ d'onglet
+        pendingSection = null;
         pendingLeaveCallback = onConfirmLeave;
         document.getElementById('unsavedModal').classList.add('active');
     };

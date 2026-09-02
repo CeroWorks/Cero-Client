@@ -15,9 +15,21 @@ def find_java_home():
                 return java_home
 
     if sys.platform != "win32":
-        candidates = glob.glob("/usr/lib/jvm/java-*-openjdk-*") + glob.glob("/usr/lib/jvm/java-*-jdk-*")
-        for path in sorted(candidates):
-            if os.path.isfile(os.path.join(path, "bin", "java")):
+        candidates = (
+            glob.glob("/usr/local/openjdk*")
+            + glob.glob("/usr/lib/jvm/java-*-openjdk-*")
+            + glob.glob("/usr/lib/jvm/java-*-jdk-*")
+            + glob.glob("/Library/Java/JavaVirtualMachines/*/Contents/Home")
+        )
+
+        def version_key(path):
+            name = os.path.basename(path.rstrip("/"))
+            digits = "".join(c for c in name if c.isdigit())
+            num = int(digits) if digits else 0
+            return ({8: 0, 17: 1, 21: 2}.get(num, 3), num)
+
+        for path in sorted(candidates, key=version_key):
+            if os.path.isfile(os.path.join(path, "bin", "javac")):
                 return path
     return None
 

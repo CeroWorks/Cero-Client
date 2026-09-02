@@ -6,9 +6,9 @@
 #include <string.h>
 #include <ctype.h>
 #include <stddef.h>
-#include "../include/logger.h"
+#include "../include/core/logger.h"
 #include "../include/utils/platform.h"
-#include "../include/config.h"
+#include "../include/config/config.h"
 
 typedef struct {
     char *id;
