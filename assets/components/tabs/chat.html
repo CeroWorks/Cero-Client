@@ -224,7 +224,6 @@
         });
     });
 
-    // Récupère mon UUID de plusieurs manières possibles
     function getMyUuid() {
         if (window.myUuid) return window.myUuid;
         if (window.account && window.account.uuid) return window.account.uuid;
@@ -260,7 +259,7 @@
 
     function loadUnreadCounts() {
         window.getMcToken().then(function(token) {
-            fetch(SERVER_URL + '/api/messages/unread/count', {
+            fetch(window.Cero.config.apiBase + '/api/messages/unread/count', {
                 headers: { 'Authorization': 'Bearer ' + token }
             })
             .then(r => r.json())
@@ -344,7 +343,7 @@
 
     function fetchMessages(uuid) {
         window.getMcToken().then(function(token) {
-            fetch(SERVER_URL + '/api/messages/' + uuid + '?limit=50', {
+            fetch(window.Cero.config.apiBase + '/api/messages/' + uuid + '?limit=50', {
                 headers: { 'Authorization': 'Bearer ' + token }
             })
             .then(r => r.json())
@@ -356,26 +355,22 @@
         });
     }
 
-    // Extrait l'UUID de l'expéditeur peu importe comment le serveur l'a nommé
     function getMsgAuthorUuid(m) {
         return m.from_uuid || m.from || m.author || m.sender_uuid;
     }
 
     function getSenderName(uuid) {
         const myU = getMyUuid();
-        const authorUuid = uuid || getMsgAuthorUuid(uuid); // au cas où on passerait tout l'objet
+        const authorUuid = uuid || getMsgAuthorUuid(uuid);
         
-        // 1. Si on est en discussion privée, et que l'auteur n'est pas l'ami, C'EST FORCÉMENT MOI.
         if (activeChatUuid && authorUuid !== activeChatUuid) {
             return "Moi";
         }
         
-        // 2. Si on a mon UUID et que ça correspond, c'est moi
         if (myU && authorUuid === myU) {
             return "Moi";
         }
         
-        // 3. Sinon, c'est l'ami
         const friend = allFriends.find(f => f.uuid === authorUuid);
         return friend ? friend.username : "Ami";
     }
@@ -384,13 +379,11 @@
         const myU = getMyUuid();
         const authorUuid = uuid || getMsgAuthorUuid(uuid);
         
-        // Si ce n'est pas l'ami actif, c'est moi
         if (activeChatUuid && authorUuid !== activeChatUuid) {
             if (myU) return 'https://mc-heads.net/avatar/' + encodeURIComponent(myU) + '/24';
-            return 'https://mc-heads.net/avatar/char/24'; // Tête par défaut
+            return 'https://mc-heads.net/avatar/char/24';
         }
         
-        // Sinon c'est l'ami
         const friend = allFriends.find(f => f.uuid === authorUuid);
         if (friend) return friend.avatarUrl;
         
@@ -413,7 +406,6 @@
         const authorUuid = getMsgAuthorUuid(m);
         const myU = getMyUuid();
         
-        // Déduction infaillible : si l'auteur n'est pas l'ami, c'est moi
         let mine = false;
         if (activeChatUuid) {
             mine = (authorUuid !== activeChatUuid);
@@ -425,11 +417,9 @@
         row.className = 'chat-bubble-row ' + (mine ? 'mine' : 'theirs');
         row.dataset.id = m.id;
 
-        // Conteneur pour le texte (nom + bulle + heure)
         const contentWrapper = document.createElement('div');
         contentWrapper.className = 'chat-bubble-content';
 
-        // Affichage du nom de l'expéditeur
         const author = document.createElement('div');
         author.className = 'chat-bubble-author';
         author.textContent = getSenderName(authorUuid);
@@ -455,7 +445,6 @@
             contentWrapper.appendChild(actions);
         }
 
-        // Avatar de l'expéditeur
         const avatarUrl = getSenderAvatar(authorUuid);
         const avatar = document.createElement('img');
         avatar.className = 'chat-bubble-avatar';
@@ -488,7 +477,7 @@
         input.disabled = true;
 
         window.getMcToken().then(function(token) {
-            fetch(SERVER_URL + '/api/messages', {
+            fetch(window.Cero.config.apiBase + '/api/messages', {
                 method: 'POST',
                 headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ to: activeChatUuid, content: content })
@@ -499,7 +488,6 @@
                 if (data.ok) {
                     if (!messagesCache[activeChatUuid]) messagesCache[activeChatUuid] = [];
                     
-                    // ON FORCE L'IDENTITÉ ICI pour être sûr que le script local le reconnaisse comme "Moi"
                     const myU = getMyUuid();
                     if (myU && data.message) {
                         data.message.from_uuid = myU;
@@ -516,7 +504,6 @@
     function handleIncomingMessage(msg, fromUser) {
         let messageObj = msg.message || msg;
         
-        // Si le websocket donne l'auteur (fromUser), on l'injecte
         if (fromUser && !messageObj.from_uuid) {
             messageObj.from_uuid = fromUser;
         }
@@ -524,15 +511,12 @@
         const authorUuid = getMsgAuthorUuid(messageObj);
         const myU = getMyUuid();
         
-        // Déduire l'autre personne de la conversation
-        let otherUuid = activeChatUuid; // Par défaut, on suppose que ça vient de l'ami actif
+        let otherUuid = activeChatUuid;
         
         if (authorUuid) {
-            // Si je suis l'auteur, l'autre est le destinataire
             if (myU && authorUuid === myU) {
                 otherUuid = messageObj.to_uuid || messageObj.to || activeChatUuid;
-            } 
-            // Si l'auteur n'est pas moi, l'autre est l'auteur
+            }
             else {
                 otherUuid = authorUuid;
             }
@@ -544,7 +528,6 @@
         if (activeChatUuid === otherUuid) {
             renderMessages(otherUuid);
         } else if (!myU || authorUuid !== myU) {
-            // Si ça ne vient pas de moi, on incrémente les non-lus
             unreadCounts[otherUuid] = (unreadCounts[otherUuid] || 0) + 1;
             renderChatFriends();
         }
@@ -594,7 +577,7 @@
             const newContent = input.value.trim();
             if (!newContent || newContent === original) { cancel(); return; }
             window.getMcToken().then(function(token) {
-                fetch(SERVER_URL + '/api/messages/' + id, {
+                fetch(window.Cero.config.apiBase + '/api/messages/' + id, {
                     method: 'PATCH',
                     headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ content: newContent })
@@ -625,7 +608,7 @@
 
     window.deleteMessage = function(id) {
         window.getMcToken().then(function(token) {
-            fetch(SERVER_URL + '/api/messages/' + id, {
+            fetch(window.Cero.config.apiBase + '/api/messages/' + id, {
                 method: 'DELETE',
                 headers: { 'Authorization': 'Bearer ' + token }
             })

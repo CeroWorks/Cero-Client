@@ -1,7 +1,7 @@
 import os
 import re
 
-LAUNCHER_VERSION = "3.4.11A"
+LAUNCHER_VERSION = "4.0.1"
 
 ASSETS_ROOT = "assets"
 DIST_ROOT   = "dist"
@@ -55,6 +55,14 @@ JS_FUNC_DEF_RE = re.compile(
     )''', re.VERBOSE)
 JS_CALL_RE      = re.compile(r'(?<![.\w$])([A-Za-z_$][\w$]*)\s*\(')
 HTML_HANDLER_RE = re.compile(r'\bon[a-z]+\s*=\s*["\']([^"\']+)["\']', re.IGNORECASE)
+
+JS_IMPORT_REGEX = re.compile(
+    r'''(?:import\s+(?:[\w${},*\s]+\s+from\s+)?['"]([^'"]+)['"])
+      | (?:import\s*\(\s*['"]([^'"]+)['"]\s*\))
+      | (?:export\s+(?:\*|\{[^}]*\})\s+from\s+['"]([^'"]+)['"])
+      | (?:require\s*\(\s*['"]([^'"]+)['"]\s*\))
+      | (?:new\s+Worker\s*\(\s*['"]([^'"]+)['"])''',
+    re.VERBOSE)
 
 JS_BUILTINS = {
     'if','for','while','switch','catch','return','typeof','new','delete','void',

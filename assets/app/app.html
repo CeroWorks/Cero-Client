@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/skinview3d@3.0.1/bundles/skinview3d.bundle.js"></script>
-    <script src="../js/utils/app.js"></script>
-    <script src="../js/ws.js" defer></script>
-    <script src="../js/friends-requests.js"></script>
     <link rel="icon" href="../favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="../style/app.css">
 </head>
@@ -128,7 +125,6 @@
         <%import "../components/footer.html"%>
     </div>
 
-    <script type="text/javascript" src="../js/app.js"></script>
     <script>
         function switchAppTab(tab) {
             const onSettingsTab = document.getElementById('appTab-parametre').style.display !== 'none';
@@ -152,4 +148,18 @@
         }
     </script>
 </body>
+<script src="../js/core/config.js"></script>
+<script src="../js/core/log.js"></script>
+<script src="../js/core/drag.js"></script>
+<script src="../js/ui/grain.js"></script>
+<script src="../js/ui/hardening.js"></script>
+<script src="../js/ui/close-menu.js"></script>
+<script src="../js/utils/app.js"></script>
+<script src="../js/ws.js"></script>
+<script src="../js/features/account-skin.js"></script>
+<script src="../js/features/friends.js"></script>
+<script src="../js/features/launch.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/friends-requests.js"></script>
+<script src="../js/header.js"></script>
 </html>

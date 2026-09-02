@@ -6,11 +6,11 @@
 #else
   #include <sys/stat.h>
 #endif
-#include "../../include/logger.h"
-#include "../../include/download.h"
+#include "../../include/core/logger.h"
+#include "../../include/net/download.h"
 #include "../../include/utils/file_utils.h"
 #include "../../include/utils/version_manifest.h"
-#include "../../include/config.h"
+#include "../../include/config/config.h"
 
 static int file_exists_fast(const char* path) {
 #ifdef _WIN32

@@ -62,7 +62,7 @@ def main():
                 content = f.read()
         except OSError:
             continue
-        for r in collect_refs(content, os.path.dirname(os.path.abspath(full))):
+        for r in collect_refs(content, os.path.dirname(os.path.abspath(full)), is_js=full.lower().endswith(".js")):
             if r not in used_assets:
                 used_assets.add(r)
                 to_scan.append(r)
@@ -119,6 +119,12 @@ def main():
         for s in skipped:
             print(f"     - {s}")
 
+    orphan_js = [s for s in skipped if s.endswith(".js")]
+    if orphan_js:
+        warn_(f"{len(orphan_js)} JS files unreferenced — runtime will break:")
+        for s in orphan_js:
+            print(f"     - {s}")
+        
     step("Obfuscation and minification...")
     obfuscate_js(config.DIST_ROOT)
     minify_css(config.DIST_ROOT)

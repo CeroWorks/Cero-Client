@@ -1,4 +1,5 @@
-const FR_API = 'http://www.arcadiafr.fr:3134';
+//const FR_API = 'http://www.arcadiafr.fr:3134';
+const FR_API = 'http://localhost:3134';
 let pendingIncoming = [];
 let pendingOutgoing = [];
 

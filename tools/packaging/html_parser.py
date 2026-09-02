@@ -1,7 +1,7 @@
 import os
 from config import (
     ASSETS_ROOT_ABS, IMPORT_REGEX, REF_REGEX, ASSET_HINT_REGEX, 
-    MAX_IMPORT_DEPTH, MAX_TOTAL_IMPORTS, MAX_FILE_SIZE
+    MAX_IMPORT_DEPTH, MAX_TOTAL_IMPORTS, MAX_FILE_SIZE, JS_IMPORT_REGEX
 )
 from utils import safe_join, inject_version
 
@@ -57,10 +57,10 @@ def normalize_ref(ref: str, base_dir: str):
         return None
     return os.path.relpath(target, ASSETS_ROOT_ABS).replace("\\", "/")
 
-def collect_refs(content: str, base_dir: str) -> set:
+def collect_refs(content: str, base_dir: str, is_js: bool = False) -> set:
     found = set()
     for m in REF_REGEX.finditer(content):
-        raw = m.group(1) or m.group(2) or m.group(3)
+        raw = next((g for g in m.groups() if g), None)
         if not raw:
             continue
         candidates = ([c.strip().split()[0] for c in raw.split(",")]
@@ -69,6 +69,16 @@ def collect_refs(content: str, base_dir: str) -> set:
             n = normalize_ref(ref, base_dir)
             if n:
                 found.add(n)
+
+    if is_js:
+        for m in JS_IMPORT_REGEX.finditer(content):
+            raw = next((g for g in m.groups() if g), None)
+            if not raw:
+                continue
+            n = normalize_ref(raw, base_dir)
+            if n:
+                found.add(n)
+
     for m in ASSET_HINT_REGEX.finditer(content):
         raw = m.group(1).strip().strip('"\'')
         n = normalize_ref(raw, ASSETS_ROOT_ABS)

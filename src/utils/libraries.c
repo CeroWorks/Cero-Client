@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../../include/logger.h"
-#include "../../include/download.h"
+#include "../../include/core/logger.h"
+#include "../../include/net/download.h"
 #include "../../include/utils/file_utils.h"
 #include "../../include/utils/version_manifest.h"
-#include "../../include/config.h"
-#include "../../include/miniz.h"
-#include "../../include/sha1.h"
+#include "../../include/config/config.h"
+#include "../../include/vendor/miniz.h"
+#include "../../include/crypto/sha1.h"
 #include "../../include/utils/platform.h"
 
 static int is_blacklisted(const char* filename) {

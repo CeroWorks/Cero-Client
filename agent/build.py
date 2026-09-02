@@ -5,15 +5,11 @@ import shutil
 
 is_windows = platform.system() == "Windows"
 
-# ── Détection automatique de JAVA_HOME ────────────────────────────────────
-# Priorité : variable d'env > java-21 > java-17 > java-8
 def find_java_home():
-    # 1) Respecter la variable d'environnement si déjà définie
     env_home = os.environ.get("JAVA_HOME", "").strip()
     if env_home and os.path.isdir(env_home):
         return env_home
 
-    # 2) Chercher un JDK 21, 17 ou 8 dans /usr/lib/jvm/
     jvm_dir = "/usr/lib/jvm"
     if os.path.isdir(jvm_dir):
         candidates = []
@@ -21,12 +17,10 @@ def find_java_home():
             full = os.path.join(jvm_dir, entry)
             if not os.path.isdir(full) or entry.startswith("."):
                 continue
-            # Préférer les JDK (contenant javac)
             javac = os.path.join(full, "bin", "javac" + (".exe" if is_windows else ""))
             has_javac = os.path.isfile(javac)
             candidates.append((full, has_javac))
 
-        # Trier par priorité : JDK 21 > JDK 17 > JDK 8, et préférer ceux avec javac
         def priority(c):
             path, has_javac = c
             p = 0
@@ -41,7 +35,6 @@ def find_java_home():
         if candidates:
             return candidates[0][0]
 
-    # 3) Fallback : chercher 'javac' dans le PATH
     javac_path = shutil.which("javac")
     if javac_path:
         bin_dir = os.path.dirname(javac_path)
