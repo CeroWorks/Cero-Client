@@ -31,3 +31,5 @@ __pycache__/
 CeroClient
 
 WebKitWebProcess.core
+
+webview2_sdk/
