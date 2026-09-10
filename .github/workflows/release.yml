@@ -2,9 +2,23 @@ name: CeroClient Build & Release
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "dev" ]
+    paths:
+      - '.github/workflows/release.yml'
+      - 'src/**'
+      - 'include/**'
+      - 'assets/**'
+      - 'installer/**'
+      - 'bootstrapper/**'
   pull_request:
     branches: [ "main" ]
+    paths:
+      - '.github/workflows/release.yml'
+      - 'src/**'
+      - 'include/**'
+      - 'assets/**'
+      - 'installer/**'
+      - 'bootstrapper/**'
 
 permissions:
   contents: write
@@ -27,7 +41,7 @@ jobs:
 
       - uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '8'
           distribution: 'temurin'
 
       - uses: dtolnay/rust-toolchain@stable
@@ -73,7 +87,7 @@ jobs:
 
       - uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '8'
           distribution: 'temurin'
 
       - uses: dtolnay/rust-toolchain@stable
@@ -115,7 +129,7 @@ jobs:
 
       - uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '8'
           distribution: 'temurin'
 
       - uses: dtolnay/rust-toolchain@stable
@@ -170,7 +184,7 @@ jobs:
 
       - uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '8'
           distribution: 'temurin'
 
       - name: Download WebView2 SDK
@@ -290,7 +304,7 @@ jobs:
             set -e
             env IGNORE_OSVERSION=yes pkg update -f
             env IGNORE_OSVERSION=yes pkg install -y \
-              python3 pkgconf webkit2-gtk_41 curl git openjdk17 \
+              python3 pkgconf webkit2-gtk_41 curl git openjdk8 \
               gmake bzip2 rust gtk4 nim zip
             printf "Name: bzip2\nDescription: bzip2\nVersion: 1.0.8\nLibs: -lbz2\n" \
               > /usr/local/libdata/pkgconfig/bzip2.pc

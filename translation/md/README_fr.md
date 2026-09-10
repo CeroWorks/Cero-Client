@@ -45,7 +45,7 @@
 
 ## Installation
 
-Tous les téléchargements et instructions pour CeroClient sont disponibles sur notre [Site Web](https://cerostudio.fr/ceroclient) ou depuis les releases.
+Tous les téléchargements et instructions pour CeroClient sont disponibles sur notre [Site Web](https://cerostudio.fr/ceroclient) (pas encore à jour) ou depuis les releases.
 
 *Note : macOS est largement non testé — nous n'avons actuellement aucun testeur sur macOS.*
 

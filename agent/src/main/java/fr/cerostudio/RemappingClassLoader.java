@@ -1,5 +1,12 @@
 package fr.cerostudio;
 
+import fr.cerostudio.api.CeroApi;
+import fr.cerostudio.api.capability.CapabilitySet;
+import fr.cerostudio.api.capability.GameCapability;
+import fr.cerostudio.api.mod.ModContainer;
+import fr.cerostudio.api.mod.ModLoader;
+import fr.cerostudio.api.player.PlayerIdentity;
+import fr.cerostudio.core.CeroClientMod;
 import fr.cerostudio.service.CeroMixinService;
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.Mixins;
@@ -17,16 +24,19 @@ public class RemappingClassLoader extends URLClassLoader {
     private final String mcVersion;
     private IMixinTransformer mixinTransformer;
 
-    public RemappingClassLoader(URL[] urls, ClassLoader parent, String mcVersion) {
+    public RemappingClassLoader(URL[] urls, ClassLoader parent, String mcVersion, PlayerIdentity identity) {
         super(urls, parent);
         this.mcVersion = mcVersion;
 
         System.out.println("[CeroClassLoader] Démarrage de Mixin en mode ClassLoader pour la " + mcVersion + "...");
         Thread.currentThread().setContextClassLoader(this);
 
+        CapabilitySet capabilities = CapabilitySet.resolve(mcVersion);
+        CeroApi.bootstrap(capabilities, new ModLoader(), identity);
+
         MixinBootstrap.init();
 
-        String mixinConfig = resolveMixinConfig(mcVersion);
+        String mixinConfig = resolveMixinConfig(capabilities);
         Mixins.addConfiguration(mixinConfig);
 
         Object service = MixinService.getService();
@@ -36,9 +46,12 @@ public class RemappingClassLoader extends URLClassLoader {
 
         if (this.mixinTransformer != null) {
             System.out.println("[CeroClassLoader] Moteur Mixin hooké avec succès !");
+            CeroApi.services().register(IMixinTransformer.class, this.mixinTransformer);
         } else {
             System.err.println("[CeroClassLoader] Erreur: transformer Mixin indisponible.");
         }
+
+        CeroApi.mods().load(ModContainer.clientOnly("cero-client", "CeroClient", new CeroClientMod()));
     }
 
     @Override
@@ -47,10 +60,15 @@ public class RemappingClassLoader extends URLClassLoader {
             Class<?> loadedClass = findLoadedClass(name);
             if (loadedClass != null) return loadedClass;
 
-            if (name.startsWith("net.minecraft.") || 
-                name.startsWith("com.mojang.") || 
-                name.startsWith("fr.cerostudio.")) {
-                
+            if (name.startsWith("fr.cerostudio.api.")) {
+                Class<?> c = getParent().loadClass(name);
+                if (resolve) resolveClass(c);
+                return c;
+            }
+
+            if (name.startsWith("net.minecraft.") ||
+                    name.startsWith("com.mojang.") ||
+                    name.startsWith("fr.cerostudio.")) {
                 try {
                     Class<?> c = findClass(name);
                     if (resolve) resolveClass(c);
@@ -132,17 +150,8 @@ public class RemappingClassLoader extends URLClassLoader {
         return bytes;
     }
 
-    private String resolveMixinConfig(String version) {
-        String majorVersion = version;
-        int firstDot = version.indexOf('.');
-        if (firstDot != -1) {
-            int secondDot = version.indexOf('.', firstDot + 1);
-            majorVersion = (secondDot != -1) ? version.substring(0, secondDot) : version;
-        }
-
-        if (majorVersion.startsWith("1.7") || majorVersion.startsWith("1.8") || 
-            majorVersion.startsWith("1.9") || majorVersion.startsWith("1.10") || 
-            majorVersion.startsWith("1.11") || majorVersion.startsWith("1.12")) {
+    private String resolveMixinConfig(CapabilitySet capabilities) {
+        if (capabilities.has(GameCapability.LWJGL2_DISPLAY)) {
             System.out.println("[CeroClassLoader] Chargement des mixins Legacy (LWJGL 2)");
             return "mixins.cero.v1_legacy.json";
         }

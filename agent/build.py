@@ -45,7 +45,7 @@ def find_java_home():
 java_home = find_java_home()
 if java_home is None:
     print("ERREUR: Impossible de trouver un JDK installé.")
-    print("Veuillez installer Java 21+ ou définir JAVA_HOME manuellement.")
+    print("Veuillez installer Java 8 ou définir JAVA_HOME manuellement.")
     exit(1)
 
 print(f"JAVA_HOME détecté : {java_home}")

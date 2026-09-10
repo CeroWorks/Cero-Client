@@ -1,14 +1,20 @@
 #ifdef _WIN32
-  #define WIN32_LEAN_AND_MEAN
-  #define _WINSOCKAPI_
+  #ifndef WIN32_LEAN_AND_MEAN
+    #define WIN32_LEAN_AND_MEAN
+  #endif
+  #ifndef _WINSOCKAPI_
+    #define _WINSOCKAPI_
+  #endif
   #include <winsock2.h>
   #include <windows.h>
   #include <dwmapi.h>
+  #include <shlwapi.h>
   #include <wrl.h>
   #include <WebView2.h>
   using namespace Microsoft::WRL;
   #ifdef _MSC_VER
     #pragma comment(lib, "dwmapi.lib")
+    #pragma comment(lib, "shlwapi.lib")
   #endif
   #ifndef DWMWA_WINDOW_CORNER_PREFERENCE
     #define DWMWA_WINDOW_CORNER_PREFERENCE 33
@@ -21,6 +27,7 @@
 #include "../../include/core/logger.h"
 #include <../include/vendor/cJSON.h>
 #include "webview/webview.h"
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <math.h>
@@ -202,6 +209,131 @@ extern "C" void ui_lockdown(void* w) {
 extern "C" void ui_lockdown(void* w) { (void)w; }
 #endif
 
+#ifdef _WIN32
+static const char* cero_mime_for_ext(const char* path) {
+    const char* ext = strrchr(path, '.');
+    if (!ext) return "application/octet-stream";
+    if (strcmp(ext, ".html") == 0) return "text/html";
+    if (strcmp(ext, ".css") == 0) return "text/css";
+    if (strcmp(ext, ".js") == 0) return "application/javascript";
+    if (strcmp(ext, ".png") == 0) return "image/png";
+    if (strcmp(ext, ".ico") == 0) return "image/x-icon";
+    if (strcmp(ext, ".svg") == 0) return "image/svg+xml";
+    if (strcmp(ext, ".json") == 0) return "application/json";
+    if (strcmp(ext, ".woff2") == 0) return "font/woff2";
+    if (strcmp(ext, ".woff") == 0) return "font/woff";
+    if (strcmp(ext, ".ttf") == 0) return "font/ttf";
+    return "text/html";
+}
+
+static const GUID IID_ICoreWebView2_2_local =
+    { 0x9E8F0CF8, 0xE670, 0x4B5E, { 0xB2, 0xBC, 0x73, 0xE0, 0x61, 0xE3, 0x18, 0x4C } };
+static const GUID IID_ICoreWebView2WebResourceRequestedEventHandler_local =
+    { 0xab00b74c, 0x15f1, 0x4646, { 0x80, 0xe8, 0xe7, 0x63, 0x41, 0xd2, 0x5d, 0x71 } };
+static const GUID IID_IUnknown_local =
+    { 0x00000000, 0x0000, 0x0000, { 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46 } };
+
+class CeroWebResourceHandler : public ICoreWebView2WebResourceRequestedEventHandler {
+    volatile LONG m_ref;
+public:
+    CeroWebResourceHandler() : m_ref(1) {}
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        if (!ppv) return E_POINTER;
+        if (riid == IID_IUnknown_local || riid == IID_ICoreWebView2WebResourceRequestedEventHandler_local) {
+            *ppv = static_cast<ICoreWebView2WebResourceRequestedEventHandler*>(this);
+            AddRef();
+            return S_OK;
+        }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+
+    ULONG STDMETHODCALLTYPE AddRef() override {
+        return (ULONG)InterlockedIncrement(&m_ref);
+    }
+
+    ULONG STDMETHODCALLTYPE Release() override {
+        LONG r = InterlockedDecrement(&m_ref);
+        if (r == 0) delete this;
+        return (ULONG)r;
+    }
+
+    HRESULT STDMETHODCALLTYPE Invoke(ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args) override {
+        ComPtr<ICoreWebView2_2> sender2;
+        if (FAILED(sender->QueryInterface(IID_ICoreWebView2_2_local, (void**)sender2.GetAddressOf())) || !sender2) {
+            return S_OK;
+        }
+        ComPtr<ICoreWebView2Environment> env;
+        sender2->get_Environment(&env);
+        if (!env) return S_OK;
+
+        ComPtr<ICoreWebView2WebResourceRequest> request;
+        args->get_Request(&request);
+
+        LPWSTR wideUri = nullptr;
+        request->get_Uri(&wideUri);
+
+        char path[1024] = {0};
+        if (wideUri) {
+            WideCharToMultiByte(CP_UTF8, 0, wideUri, -1, path, sizeof(path), NULL, NULL);
+            CoTaskMemFree(wideUri);
+        }
+
+        // "https://cero.local/app/index.html" -> "app/index.html"
+        const char* p = path;
+        const char* prefix = "https://cero.local/";
+        size_t prefixLen = strlen(prefix);
+        if (strncmp(p, prefix, prefixLen) == 0) p += prefixLen;
+        while (*p == '/') p++;
+
+        const uint8_t* data = NULL;
+        size_t size = 0;
+        ComPtr<ICoreWebView2WebResourceResponse> response;
+
+        if (assets_get_file(p, &data, &size) && data && size > 0) {
+            IStream* stream = SHCreateMemStream(data, (UINT)size);
+            wchar_t headers[128];
+            swprintf(headers, 128, L"Content-Type: %hs\r\n", cero_mime_for_ext(p));
+            env->CreateWebResourceResponse(stream, 200, L"OK", headers, &response);
+            if (stream) stream->Release();
+            assets_free_buffer(data);
+        } else {
+            env->CreateWebResourceResponse(nullptr, 404, L"Not Found", L"", &response);
+            log_msg("error", "[UI-Windows] asset introuvable: %s\n", p);
+        }
+
+        if (response) args->put_Response(response.Get());
+        return S_OK;
+    }
+};
+
+static void ui_register_scheme_win(void* w) {
+    auto controller = (ICoreWebView2Controller*)webview_get_native_handle(
+        (webview_t)w, WEBVIEW_NATIVE_HANDLE_KIND_BROWSER_CONTROLLER);
+    if (!controller) {
+        log_msg("error", "[UI-Windows] Impossible de récupérer le controller WebView2\n");
+        return;
+    }
+
+    ComPtr<ICoreWebView2> core;
+    controller->get_CoreWebView2(&core);
+    if (!core) {
+        log_msg("error", "[UI-Windows] Impossible de récupérer ICoreWebView2\n");
+        return;
+    }
+
+    core->AddWebResourceRequestedFilter(L"https://cero.local/*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
+
+    EventRegistrationToken token;
+    CeroWebResourceHandler* handler = new CeroWebResourceHandler();
+    core->add_WebResourceRequested(handler, &token);
+    handler->Release();
+
+    log_msg("info", "[UI-Windows] Scheme cero:// enregistré\n");
+}
+#endif
+
 extern "C" {
 
 void ui_terminate(void* w) { webview_terminate((webview_t)w); }
@@ -334,12 +466,28 @@ void* ui_create(const char* title) {
     webkit_web_context_register_uri_scheme(ctx, "cero", ceroclient_uri_scheme_cb, NULL, NULL);
 #elif defined(__APPLE__)
     ui_macos_register_scheme(w);
+#elif defined(_WIN32)
+    ui_register_scheme_win(w);
 #endif
 
     return w;
 }
 
-void ui_navigate(void* w, const char* url) { webview_navigate((webview_t)w, url); }
+void ui_navigate(void* w, const char* url) {
+#ifdef _WIN32
+    const char* prefix = "cero://";
+    size_t prefixLen = strlen(prefix);
+    if (strncmp(url, prefix, prefixLen) == 0) {
+        const char* rest = url + prefixLen;
+        while (*rest == '/') rest++;
+        char rewritten[1024];
+        snprintf(rewritten, sizeof(rewritten), "https://cero.local/%s", rest);
+        webview_navigate((webview_t)w, rewritten);
+        return;
+    }
+#endif
+    webview_navigate((webview_t)w, url);
+}
 
 void ui_run(void* w) {
     webview_run((webview_t)w);

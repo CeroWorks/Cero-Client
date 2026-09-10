@@ -45,7 +45,7 @@
 
 ## Installation
 
-All downloads and instructions for CeroClient are available on our [Website](https://cerostudio.fr/ceroclient) or from releases.
+All downloads and instructions for CeroClient are available on our [Website](https://cerostudio.fr/ceroclient) (not already updated) or from releases.
 
 *Note: macOS is largely untested — we currently have no macOS testers.*
 
@@ -64,6 +64,8 @@ All downloads and instructions for CeroClient are available on our [Website](htt
 ## Building from Source
 
 If you want to compile CeroClient yourself, you can use the provided build scripts in the repository.
+
+*For further assistance with installing prerequisites and compiling, please refer to `BUILDING.md`.*
 
 **Requirements (Linux):**
 * **GCC / G++** ≥ `13.3.0`

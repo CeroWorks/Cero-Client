@@ -1,5 +1,7 @@
 package fr.cerostudio;
 
+import fr.cerostudio.api.player.PlayerIdentity;
+
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -12,6 +14,8 @@ public class Main {
     public static void main(String[] args) throws Exception {
         String realMainClass = null;
         String mcVersion = "unknown";
+        String username = null;
+        String uuid = null;
         List<String> forwardedArgs = new ArrayList<>();
 
         for (int i = 0; i < args.length; i++) {
@@ -20,6 +24,16 @@ public class Main {
                 i++;
             } else if ("--ceroMcVersion".equals(args[i]) && i + 1 < args.length) {
                 mcVersion = args[i + 1];
+                i++;
+            } else if ("--username".equals(args[i]) && i + 1 < args.length) {
+                username = args[i + 1];
+                forwardedArgs.add(args[i]);
+                forwardedArgs.add(args[i + 1]);
+                i++;
+            } else if ("--uuid".equals(args[i]) && i + 1 < args.length) {
+                uuid = args[i + 1];
+                forwardedArgs.add(args[i]);
+                forwardedArgs.add(args[i + 1]);
                 i++;
             } else {
                 forwardedArgs.add(args[i]);
@@ -34,12 +48,15 @@ public class Main {
 
         System.out.println("[CeroClient] Démarrage — Version = " + mcVersion + " | mainClass = " + realMainClass);
 
+        PlayerIdentity identity = PlayerIdentity.resolve(username, uuid);
+
         URL[] classpathUrls = extractClasspathUrls();
 
         RemappingClassLoader remapper = new RemappingClassLoader(
                 classpathUrls,
                 Main.class.getClassLoader().getParent(),
-                mcVersion
+                mcVersion,
+                identity
         );
 
         Thread.currentThread().setContextClassLoader(remapper);

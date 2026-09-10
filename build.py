@@ -11,6 +11,7 @@ import prepare_dirs
 import build_agent
 import build_bootstrapper
 import package_assets
+#from dependencies import ensure_webview2_sdk
 import build_launcher
 import finalize
 
