@@ -130,7 +130,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           java-version: '8'
-          distribution: 'temurin'
+          distribution: 'zulu'
 
       - uses: dtolnay/rust-toolchain@stable
 
