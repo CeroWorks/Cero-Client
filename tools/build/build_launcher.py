@@ -1,8 +1,56 @@
 import os
 import sys
 import subprocess
+import urllib.request
+import zipfile
 from pathlib import Path
 from logger import step, ok, info, fail_
+
+WEBVIEW2_NUGET_URL = "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2"
+WEBVIEW2_CACHE_DIR = Path("third_party") / "webview2_sdk"
+
+
+def ensure_webview2_sdk():
+    """
+    Sur CI, le SDK WebView2 est téléchargé par le workflow et exposé via les variables
+    d'env WEBVIEW2_INCLUDE/WEBVIEW2_LIB (voir .github/workflows/release.yml). En local,
+    ces variables ne sont jamais définies : on télécharge le même package NuGet une seule
+    fois, mis en cache dans third_party/webview2_sdk/, pour que `python run.py` marche
+    sans setup manuel.
+    """
+    include_dir = os.environ.get("WEBVIEW2_INCLUDE", "")
+    lib_dir = os.environ.get("WEBVIEW2_LIB", "")
+    if include_dir and lib_dir:
+        # Variables déjà définies (ex: CI) : on respecte ce qui est fourni.
+        return include_dir, lib_dir
+
+    include_dir = str(WEBVIEW2_CACHE_DIR / "build" / "native" / "include")
+    lib_dir = str(WEBVIEW2_CACHE_DIR / "build" / "native" / "x64")
+
+    if os.path.exists(os.path.join(lib_dir, "WebView2Loader.dll.lib")):
+        info("WebView2 SDK trouvé en cache (third_party/webview2_sdk/).")
+        return include_dir, lib_dir
+
+    info("WebView2 SDK absent localement, téléchargement (une seule fois)...")
+    WEBVIEW2_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    zip_path = WEBVIEW2_CACHE_DIR / "webview2.zip"
+
+    try:
+        urllib.request.urlretrieve(WEBVIEW2_NUGET_URL, zip_path)
+        with zipfile.ZipFile(zip_path, "r") as archive:
+            archive.extractall(WEBVIEW2_CACHE_DIR)
+    except Exception as e:
+        fail_(f"Échec du téléchargement/extraction du SDK WebView2 : {e}")
+    finally:
+        if zip_path.exists():
+            zip_path.unlink()
+
+    if not os.path.exists(os.path.join(lib_dir, "WebView2Loader.dll.lib")):
+        fail_(f"WebView2Loader.dll.lib introuvable après extraction dans {lib_dir}")
+
+    ok(f"SDK WebView2 prêt ({lib_dir})")
+    return include_dir, lib_dir
+
 
 def run():
     step(f"Building local launcher ({'windows' if sys.platform == "win32" else 'linux/bsd'})")
@@ -31,8 +79,7 @@ def run():
     if sys.platform == "win32":
         win_defs = "-D_WIN32 -DWIN32_LEAN_AND_MEAN -D_WINSOCKAPI_ -D_WIN32_WINNT=0x0601 -DNTDDI_VERSION=0x06010000"
 
-        webview2_inc = os.environ.get("WEBVIEW2_INCLUDE", "")
-        webview2_lib = os.environ.get("WEBVIEW2_LIB", "")
+        webview2_inc, webview2_lib = ensure_webview2_sdk()
 
         inc_flags = "-Iinclude -Ithird_party/webview/core/include"
         if webview2_inc:

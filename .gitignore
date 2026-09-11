@@ -16,7 +16,8 @@ node_modules/
 
 deploy.pl
 
-.vscode
+.vscode/
+.idea/
 
 *.AppImage
 *.snap
@@ -31,5 +32,10 @@ __pycache__/
 CeroClient
 
 WebKitWebProcess.core
+
+Makefile
+
+*.dll
+*.jar
 
 webview2_sdk/

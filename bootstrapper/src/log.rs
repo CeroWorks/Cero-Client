@@ -15,10 +15,6 @@ impl Log {
     fn enable_ansi_windows() -> bool {
         use std::os::windows::io::AsRawHandle;
 
-        // SAFETY: `handle` comes from `stdout().as_raw_handle()`, which is a
-        // valid, live HANDLE for the process's standard output for as long
-        // as the process runs. GetConsoleMode/SetConsoleMode are simple FFI
-        // calls that only read/write `mode`, a local, correctly-sized u32.
         extern "system" {
             fn GetConsoleMode(handle: *mut std::ffi::c_void, mode: *mut u32) -> i32;
             fn SetConsoleMode(handle: *mut std::ffi::c_void, mode: u32) -> i32;

@@ -3,6 +3,32 @@ import sys
 import glob
 import subprocess
 from logger import step, ok, info, warn_, fail_
+import shutil
+import hashlib
+
+def compute_source_hash(agent_dir):
+    hasher = hashlib.sha256()
+    src_dir = os.path.join(agent_dir, "src")
+    files = []
+    for root, _, filenames in os.walk(src_dir):
+        for f in filenames:
+            if f.endswith((".java", ".kt", ".json", ".toml")):
+                files.append(os.path.join(root, f))
+    for f in sorted(files):  # tri pour un hash déterministe
+        with open(f, "rb") as fh:
+            hasher.update(fh.read())
+    for cfg in ("build.gradle", "settings.gradle", "gradle.properties"):
+        path = os.path.join(agent_dir, cfg)
+        if os.path.exists(path):
+            with open(path, "rb") as fh:
+                hasher.update(fh.read())
+    return hasher.hexdigest()
+
+def copy_jar_to_assets(jar_path, assets_dir):
+    os.makedirs(assets_dir, exist_ok=True)
+    dest = os.path.join(assets_dir, "CeroClient-MC.jar")
+    shutil.copy2(jar_path, dest)
+    return dest
 
 def find_java_home():
     java_home = os.environ.get("JAVA_HOME")
@@ -50,32 +76,26 @@ def find_built_jar(agent_dir):
 def is_agent_up_to_date(agent_dir, jar_path):
     if not jar_path or not os.path.exists(jar_path):
         return False
-        
-    jar_mtime = os.path.getmtime(jar_path)
-    
-    config_files = ["build.gradle", "settings.gradle", "gradle.properties"]
-    for f in config_files:
-        path = os.path.join(agent_dir, f)
-        if os.path.exists(path) and os.path.getmtime(path) > jar_mtime:
-            return False
-            
-    src_dir = os.path.join(agent_dir, "src")
-    if not os.path.isdir(src_dir):
+    hash_file = os.path.join(agent_dir, "build", ".source_hash")
+    if not os.path.exists(hash_file):
         return False
-        
-    for root, _, files in os.walk(src_dir):
-        for f in files:
-            if f.endswith((".java", ".kt", ".json", ".toml")):
-                file_path = os.path.join(root, f)
-                if os.path.getmtime(file_path) > jar_mtime:
-                    return False
-                    
-    return True
+    current_hash = compute_source_hash(agent_dir)
+    with open(hash_file) as f:
+        stored_hash = f.read().strip()
+    return current_hash == stored_hash
+
+def save_source_hash(agent_dir):
+    hash_file = os.path.join(agent_dir, "build", ".source_hash")
+    os.makedirs(os.path.dirname(hash_file), exist_ok=True)
+    with open(hash_file, "w") as f:
+        f.write(compute_source_hash(agent_dir))
 
 def run():
     step("Building Minecraft Agent (Java)...")
     
     agent_dir = os.path.abspath("agent")
+    assets_dir = os.path.abspath("assets")
+
     if not os.path.isdir(agent_dir):
         fail_("Agent directory not found.")
         
@@ -92,6 +112,7 @@ def run():
     jar_path = find_built_jar(agent_dir)
     if is_agent_up_to_date(agent_dir, jar_path):
         ok(f"Agent is already up-to-date (JAR: {os.path.basename(jar_path)}). Skipping Gradle build.")
+        copy_jar_to_assets(jar_path, assets_dir)
         return
         
     info("Sources have changed, running Gradle build...")
@@ -112,5 +133,8 @@ def run():
     jar_path = find_built_jar(agent_dir)
     if not jar_path:
         warn_("Build succeeded but no JAR was found in build/libs/.")
+    else:
+        copy_jar_to_assets(jar_path, assets_dir)
+        ok("Agent built successfully")
         
     ok("Agent built successfully")

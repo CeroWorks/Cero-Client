@@ -1,5 +1,7 @@
 package fr.cerostudio.mixin;
 
+import fr.cerostudio.api.CeroApi;
+import fr.cerostudio.api.event.client.GameStartEvent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -10,6 +12,6 @@ public class MixinMain {
 
     @Inject(method = "main", at = @At("HEAD"))
     private static void onMain(String[] args, CallbackInfo ci) {
-        System.out.println("[CeroClient] Hello from Mixin ! Le client est injecté.");
+        CeroApi.events().post(new GameStartEvent(CeroApi.capabilities().mcVersion()));
     }
 }
