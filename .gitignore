@@ -6,6 +6,7 @@ target/
 bootstrapper/target/
 agent/build
 agent/.gradle
+agent/gradle
 game/
 keys/
 android/
