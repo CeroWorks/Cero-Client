@@ -1,0 +1,88 @@
+{
+  "nav": {
+    "play": "Jugar",
+    "instances": "Instancias",
+    "message": "Chat",
+    "settings": "Ajustes"
+  },
+  "a11y": {
+    "minimize": "Minimizar",
+    "close": "Cerrar"
+  },
+  "closeMenu": {
+    "hide": "Ocultar el launcher",
+    "quit": "Cerrar el launcher"
+  },
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "nav": {
+      "game": "Juego",
+      "interface": "Interfaz",
+      "account": "Cuenta",
+      "about": "Acerca de"
+    },
+    "performance": { "title": "Rendimiento" },
+    "ram": {
+      "label": "RAM asignada",
+      "desc": "Memoria máxima para Minecraft"
+    },
+    "launch": {
+      "title": "Inicio",
+      "hide": {
+        "label": "Cerrar el launcher al iniciar",
+        "desc": "Oculta la ventana cuando Minecraft se inicia"
+      },
+      "reopen": {
+        "label": "Reabrir al salir",
+        "desc": "Vuelve a mostrar el launcher cuando Minecraft se cierra"
+      }
+    },
+    "appearance": {
+      "title": "Apariencia",
+      "theme": {
+        "label": "Tema",
+        "desc": "Color principal de la interfaz"
+      },
+      "lang": {
+        "label": "Idioma",
+        "desc": "Idioma de la interfaz"
+      }
+    },
+    "account": {
+      "active": "Cuenta activa",
+      "connected": "Conectado",
+      "actions": "Acciones",
+      "logout": {
+        "label": "Cerrar sesión",
+        "desc": "Elimina la cuenta de este launcher",
+        "button": "Cerrar sesión"
+      }
+    },
+    "data": {
+      "title": "Datos",
+      "reset": {
+        "label": "Restablecer ajustes",
+        "desc": "Restaura todos los ajustes a sus valores predeterminados",
+        "button": "Restablecer"
+      }
+    },
+    "about": {
+      "version": "Versión del launcher",
+      "licenses": "Licencias"
+    },
+    "unsaved": {
+      "title": "Cambios sin guardar",
+      "body": "Tienes cambios sin guardar.",
+      "discard": "Descartar cambios"
+    },
+    "logoutModal": {
+      "title": "Cerrar sesión",
+      "confirm": "¿Cerrar sesión de esta cuenta?",
+      "warning": "Deberás iniciar sesión de nuevo con Microsoft para jugar."
+    }
+  }
+}

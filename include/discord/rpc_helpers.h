@@ -6,4 +6,4 @@ void rpc_set_login(void);
 void rpc_set_idle(void);
 void rpc_set_playing(const char* version);
 
-#endif /* CERO_RPC_HELPERS_H */
+#endif 

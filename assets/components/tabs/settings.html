@@ -2,24 +2,24 @@
 
     <aside class="card rounded-2xl flex flex-col w-52 fade-up overflow-hidden flex-shrink-0">
         <div style="padding:14px 16px 10px;">
-            <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60">Paramètres</p>
+            <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60" data-i18n="settings.title">Paramètres</p>
         </div>
         <nav id="settingsNav" class="flex flex-col gap-0.5 px-2 pb-2">
             <button class="settings-nav-item active" onclick="showSettingsSection('jeu')">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-                Jeu
+                <span data-i18n="settings.nav.game">Jeu</span>
             </button>
             <button class="settings-nav-item" onclick="showSettingsSection('interface')">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
-                Interface
+                <span data-i18n="settings.nav.interface">Interface</span>
             </button>
             <button class="settings-nav-item" onclick="showSettingsSection('compte')">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-                Compte
+                <span data-i18n="settings.nav.account">Compte</span>
             </button>
             <button class="settings-nav-item" onclick="showSettingsSection('a-propos')">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                À propos
+                <span data-i18n="settings.nav.about">À propos</span>
             </button>
         </nav>
     </aside>
@@ -29,15 +29,16 @@
 
             <div id="settingsSection-jeu" class="settings-section">
                 <div class="settings-group">
-                    <p class="settings-group-title">Performance</p>
+                    <p class="settings-group-title" data-i18n="settings.performance.title">Performance</p>
 
                     <div class="settings-row">
                         <div class="settings-label">
-                            <p>RAM allouée</p>
-                            <p class="settings-desc">Mémoire maximale pour Minecraft</p>
+                            <p data-i18n="settings.ram.label">RAM allouée</p>
+                            <p class="settings-desc" data-i18n="settings.ram.desc">Mémoire maximale pour Minecraft</p>
+                            <p class="settings-desc" id="ramAvailableNote" style="opacity:.7;"></p>
                         </div>
                         <div style="display:flex;align-items:center;gap:10px;">
-                            <input type="range" id="ramSlider" min="1024" max="16384" step="1024" value="2048"
+                            <input type="range" id="ramSlider" min="512" max="16384" step="256" value="2048"
                                 class="settings-slider" oninput="updateRamLabel(this.value)">
                             <span id="ramLabel" class="settings-value-badge">2 Go</span>
                         </div>
@@ -46,12 +47,12 @@
                 </div>
 
                 <div class="settings-group">
-                    <p class="settings-group-title">Lancement</p>
+                    <p class="settings-group-title" data-i18n="settings.launch.title">Lancement</p>
 
                     <div class="settings-row">
                         <div class="settings-label">
-                            <p>Fermer le launcher au lancement</p>
-                            <p class="settings-desc">Masque la fenêtre quand Minecraft démarre</p>
+                            <p data-i18n="settings.launch.hide.label">Fermer le launcher au lancement</p>
+                            <p class="settings-desc" data-i18n="settings.launch.hide.desc">Masque la fenêtre quand Minecraft démarre</p>
                         </div>
                         <label class="settings-toggle">
                             <input type="checkbox" id="hideOnLaunch">
@@ -61,8 +62,8 @@
 
                     <div class="settings-row">
                         <div class="settings-label">
-                            <p>Rouvrir au retour</p>
-                            <p class="settings-desc">Réaffiche le launcher quand Minecraft se ferme</p>
+                            <p data-i18n="settings.launch.reopen.label">Rouvrir au retour</p>
+                            <p class="settings-desc" data-i18n="settings.launch.reopen.desc">Réaffiche le launcher quand Minecraft se ferme</p>
                         </div>
                         <label class="settings-toggle">
                             <input type="checkbox" id="reopenOnStop" checked>
@@ -72,18 +73,18 @@
                 </div>
 
                 <div class="settings-footer">
-                    <button class="btn-primary" style="font-size:12px;" onclick="saveSettingsJeu()">Enregistrer</button>
+                    <button class="btn-primary" style="font-size:12px;" onclick="saveSettingsJeu()" data-i18n="common.save">Enregistrer</button>
                 </div>
             </div>
 
             <div id="settingsSection-interface" class="settings-section" style="display:none">
                 <div class="settings-group">
-                    <p class="settings-group-title">Apparence</p>
+                    <p class="settings-group-title" data-i18n="settings.appearance.title">Apparence</p>
 
                     <div class="settings-row">
                         <div class="settings-label">
-                            <p>Thème</p>
-                            <p class="settings-desc">Couleur principale de l'interface</p>
+                            <p data-i18n="settings.appearance.theme.label">Thème</p>
+                            <p class="settings-desc" data-i18n="settings.appearance.theme.desc">Couleur principale de l'interface</p>
                         </div>
                         <div style="display:flex;gap:6px;">
                             <button class="theme-dot active" style="background:#8b5cf6" onclick="setTheme('#8b5cf6',this)" title="Violet"></button>
@@ -97,8 +98,8 @@
 
                     <div class="settings-row">
                         <div class="settings-label">
-                            <p>Langue</p>
-                            <p class="settings-desc">Langue de l'interface</p>
+                            <p data-i18n="settings.appearance.lang.label">Langue</p>
+                            <p class="settings-desc" data-i18n="settings.appearance.lang.desc">Langue de l'interface</p>
                         </div>
                         <select id="langSelect" class="settings-select">
                             <option value="en">English</option>
@@ -109,13 +110,13 @@
                     </div>
                 </div>
                 <div class="settings-footer">
-                    <button class="btn-primary" style="font-size:12px;" onclick="saveSettingsInterface()">Enregistrer</button>
+                    <button class="btn-primary" style="font-size:12px;" onclick="saveSettingsInterface()" data-i18n="common.save">Enregistrer</button>
                 </div>
             </div>
 
             <div id="settingsSection-compte" class="settings-section" style="display:none">
                 <div class="settings-group">
-                    <p class="settings-group-title">Compte actif</p>
+                    <p class="settings-group-title" data-i18n="settings.account.active">Compte actif</p>
 
                     <div class="settings-row" style="gap:12px;">
                         <img id="settingsAvatar" src="" class="friend-head" style="width:40px;height:40px;border-radius:8px;image-rendering:pixelated;">
@@ -123,31 +124,31 @@
                             <p id="settingsAccountName" style="font-size:13px;font-weight:600;">—</p>
                             <p id="settingsAccountUuid" style="font-size:10px;color:var(--text-muted);font-family:monospace;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">—</p>
                         </div>
-                        <span class="settings-badge-online">Connecté</span>
+                        <span class="settings-badge-online" data-i18n="settings.account.connected">Connecté</span>
                     </div>
                 </div>
 
                 <div class="settings-group">
-                    <p class="settings-group-title">Actions</p>
+                    <p class="settings-group-title" data-i18n="settings.account.actions">Actions</p>
 
                     <div class="settings-row">
                         <div class="settings-label">
-                            <p>Se déconnecter</p>
-                            <p class="settings-desc">Supprime le compte de ce launcher</p>
+                            <p data-i18n="settings.account.logout.label">Se déconnecter</p>
+                            <p class="settings-desc" data-i18n="settings.account.logout.desc">Supprime le compte de ce launcher</p>
                         </div>
-                        <button class="btn-remove" style="font-size:11px;padding:5px 12px;" onclick="logoutAccount()">Déconnexion</button>
+                        <button class="btn-remove" style="font-size:11px;padding:5px 12px;" onclick="logoutAccount()" data-i18n="settings.account.logout.button">Déconnexion</button>
                     </div>
                 </div>
 
                 <div class="settings-group">
-                    <p class="settings-group-title">Données</p>
+                    <p class="settings-group-title" data-i18n="settings.data.title">Données</p>
 
                     <div class="settings-row">
                         <div class="settings-label">
-                            <p>Réinitialiser les paramètres</p>
-                            <p class="settings-desc">Remet tous les paramètres par défaut</p>
+                            <p data-i18n="settings.data.reset.label">Réinitialiser les paramètres</p>
+                            <p class="settings-desc" data-i18n="settings.data.reset.desc">Remet tous les paramètres par défaut</p>
                         </div>
-                        <button class="btn-ghost" style="font-size:11px;padding:5px 12px;color:#f87171;border-color:rgba(248,113,113,0.3);" onclick="resetSettings()">Réinitialiser</button>
+                        <button class="btn-ghost" style="font-size:11px;padding:5px 12px;color:#f87171;border-color:rgba(248,113,113,0.3);" onclick="resetSettings()" data-i18n="settings.data.reset.button">Réinitialiser</button>
                     </div>
                 </div>
             </div>
@@ -157,13 +158,13 @@
                     <p class="settings-group-title">CeroClient</p>
 
                     <div class="settings-row">
-                        <div class="settings-label"><p>Version du launcher</p></div>
+                        <div class="settings-label"><p data-i18n="settings.about.version">Version du launcher</p></div>
                         <span class="settings-value-badge" id="launcherVersion"><% version %></span>
                     </div>
                 </div>
 
                 <div class="settings-group">
-                    <p class="settings-group-title">Licences</p>
+                    <p class="settings-group-title" data-i18n="settings.about.licenses">Licences</p>
                     <div class="settings-row">
                         <p style="font-size:11px;color:var(--text-muted);line-height:1.6;">
                             CeroClient utilise, better-sqlite3, Express, skinview3d, webview, WebKitGTK, GTK+ 3, Cairo, libayatana-appindicator, Microsoft Edge WebView2 SDK / Loader, libcurl, zlib, cJSON, Miniz et tiny-remapper.
@@ -177,21 +178,21 @@
 <div id="unsavedModal" class="modal-backdrop">
     <div class="modal">
         <div class="modal-header">
-            <span class="modal-title">Modifications non sauvegardées</span>
+            <span class="modal-title" data-i18n="settings.unsaved.title">Modifications non sauvegardées</span>
         </div>
         <div class="modal-body" style="text-align:center; padding: 20px;">
-            <p style="font-size:13px;">Il vous reste des modifications non sauvegardées.</p>
+            <p style="font-size:13px;" data-i18n="settings.unsaved.body">Il vous reste des modifications non sauvegardées.</p>
         </div>
         <div class="modal-footer">
-            <button class="btn-ghost" onclick="discardUnsavedChanges()">Ignorer les changements</button>
-            <button class="btn-primary" onclick="saveUnsavedChanges()">Sauvegarder</button>
+            <button class="btn-ghost" onclick="discardUnsavedChanges()" data-i18n="settings.unsaved.discard">Ignorer les changements</button>
+            <button class="btn-primary" onclick="saveUnsavedChanges()" data-i18n="common.save">Sauvegarder</button>
         </div>
     </div>
 </div>
 <div id="logoutModal" class="modal-backdrop">
     <div class="modal">
         <div class="modal-header">
-            <span class="modal-title">Se déconnecter</span>
+            <span class="modal-title" data-i18n="settings.logoutModal.title">Se déconnecter</span>
             <button class="wc-btn" onclick="closeLogoutModal()">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <line x1="6" y1="6" x2="18" y2="18" stroke-linecap="round"/>
@@ -201,12 +202,12 @@
         </div>
         <div class="modal-body" style="text-align:center; padding: 24px 20px;">
             <img id="logoutModalAvatar" class="friend-head" style="width:48px;height:48px;margin:0 auto 12px;display:block;border-radius:8px;image-rendering:pixelated;" src="" alt="">
-            <p style="font-size:14px;font-weight:600;">Se déconnecter de ce compte ?</p>
-            <p style="font-size:11px;color:var(--text-muted);margin-top:4px;">Vous devrez vous reconnecter avec Microsoft pour rejouer.</p>
+            <p style="font-size:14px;font-weight:600;" data-i18n="settings.logoutModal.confirm">Se déconnecter de ce compte ?</p>
+            <p style="font-size:11px;color:var(--text-muted);margin-top:4px;" data-i18n="settings.logoutModal.warning">Vous devrez vous reconnecter avec Microsoft pour rejouer.</p>
         </div>
         <div class="modal-footer">
-            <button class="btn-ghost" onclick="closeLogoutModal()">Annuler</button>
-            <button id="logoutConfirmBtn" class="btn-remove" onclick="confirmLogout()">Se déconnecter</button>
+            <button class="btn-ghost" onclick="closeLogoutModal()" data-i18n="common.cancel">Annuler</button>
+            <button id="logoutConfirmBtn" class="btn-remove" onclick="confirmLogout()" data-i18n="settings.account.logout.button">Se déconnecter</button>
         </div>
     </div>
 </div>
@@ -314,7 +315,7 @@
     border:1px solid rgba(255,255,255,0.08);
     border-radius:6px; padding:3px 8px;
     color:var(--text-muted); white-space:nowrap;
-    min-width:52px;
+    width:64px;
     text-align:center;
     display:inline-block;
 }
@@ -422,9 +423,45 @@ window.discardUnsavedChanges = function() {
     }
 };
 
+    let systemRamMb = 0;
+    let maxSelectableRamMb = 16384;
+
+    function computeMaxSelectableRam(totalMb) {
+        if (!totalMb || totalMb <= 0) return 16384;
+        const reserve = Math.max(1024, Math.round(totalMb * 0.15));
+        return Math.max(512, totalMb - reserve);
+    }
+
+    function initRamCap() {
+        if (!window.get_system_ram) return;
+        window.get_system_ram().then(function(mb) {
+            const total = Number(mb) || 0;
+            systemRamMb = total;
+            maxSelectableRamMb = computeMaxSelectableRam(total);
+
+            const slider = document.getElementById('ramSlider');
+            slider.max = maxSelectableRamMb;
+            if (Number(slider.value) > maxSelectableRamMb) {
+                slider.value = maxSelectableRamMb;
+            }
+            updateRamLabel(slider.value);
+
+            const note = document.getElementById('ramAvailableNote');
+            if (note) {
+                note.textContent = total
+                    ? (Math.round(total / 1024 * 10) / 10) + ' Go détectés sur cette machine'
+                    : '';
+            }
+        }).catch(() => {});
+    }
+    initRamCap();
+
     window.updateRamLabel = function(val) {
-        const mo = Math.round(Number(val) / 1024) * 1024;
-        const go = mo / 1024;
+        let mb = Number(val);
+        if (mb > maxSelectableRamMb) mb = maxSelectableRamMb;
+        const slider = document.getElementById('ramSlider');
+        if (slider && Number(slider.value) !== mb) slider.value = mb;
+        const go = Math.round((mb / 1024) * 10) / 10;
         document.getElementById('ramLabel').textContent = go + ' Go';
     };
 
@@ -504,7 +541,8 @@ window.confirmLogout = function() {
     }
 
     window.saveSettingsJeu = function() {
-        const ram = Math.round(Number(document.getElementById('ramSlider').value) / 1024) * 1024;
+        let ram = Math.round(Number(document.getElementById('ramSlider').value) / 256) * 256;
+        if (ram > maxSelectableRamMb) ram = maxSelectableRamMb;
         const hide = document.getElementById('hideOnLaunch').checked;
         const reopen = document.getElementById('reopenOnStop').checked;
         if (window.save_settings) {
@@ -517,6 +555,7 @@ window.confirmLogout = function() {
         const lang = document.getElementById('langSelect').value;
         const accent = document.documentElement.style.getPropertyValue('--accent-color') || savedAccentColor;
         if (window.save_settings) window.save_settings({ lang: lang, accentColor: accent });
+        if (window.Cero && window.Cero.i18n) window.Cero.i18n.setLanguage(lang, false);
         savedAccentColor = accent;
         dirty = false;
     };
@@ -530,7 +569,8 @@ window.confirmLogout = function() {
             return;
         }
         if (s.ram) {
-            const ram = Math.round(Number(s.ram) / 1024) * 1024;
+            let ram = Math.round(Number(s.ram) / 256) * 256;
+            if (ram > maxSelectableRamMb) ram = maxSelectableRamMb;
             document.getElementById('ramSlider').value = ram;
             updateRamLabel(ram);
         }

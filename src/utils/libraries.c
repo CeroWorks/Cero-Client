@@ -181,7 +181,6 @@ int extract_all_natives(const char* client_dir, const char* version) {
     for (size_t i = 0; i < libs.count; i++) {
         LibraryEntry *e = &libs.items[i];
 
-        
         if (e->native_path) {
             char jar_path[MAX_PATH_SIZE];
             snprintf(jar_path, sizeof(jar_path),
@@ -191,7 +190,6 @@ int extract_all_natives(const char* client_dir, const char* version) {
             continue;
         }
 
-        
         if (e->path && is_native_for_current_os(e->path)) {
             char jar_path[MAX_PATH_SIZE];
             snprintf(jar_path, sizeof(jar_path),

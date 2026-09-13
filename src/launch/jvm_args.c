@@ -3,7 +3,7 @@
 #include "../../include/core/logger.h"
 #include <stdio.h>
 
-#define CLIENT_BRAND "ceroclient"
+#define CLIENT_BRAND "CeroClient"
 
 void build_classpath(char* out, size_t outsz,
                      int has_cero, const char* cero_jar_path,
@@ -37,7 +37,7 @@ void build_classpath(char* out, size_t outsz,
 
 int build_launch_argv(const LaunchParams* p, const char** argv, int max_argv,
                       char* bridge_port_buf, size_t bridge_port_buf_sz) {
-    (void)max_argv; /* the fixed argument list below fits well within the caller's buffer */
+    (void)max_argv; 
 
     static char natives_dir[MAX_PATH_SIZE];
     snprintf(natives_dir, sizeof(natives_dir),
@@ -67,8 +67,17 @@ int build_launch_argv(const LaunchParams* p, const char** argv, int max_argv,
     int n = 0;
     argv[n++] = p->java_exe;
 
-    argv[n++] = "-Xms2G";
-    argv[n++] = "-Xmx6G";
+    long xmx_mb = (p->ram_mb > 0) ? p->ram_mb : 2048;
+    long xms_mb = xmx_mb / 2;
+    if (xms_mb > 2048) xms_mb = 2048;
+    if (xms_mb < 256) xms_mb = 256;
+
+    static char arg_xms[32];
+    static char arg_xmx[32];
+    snprintf(arg_xms, sizeof(arg_xms), "-Xms%ldM", xms_mb);
+    snprintf(arg_xmx, sizeof(arg_xmx), "-Xmx%ldM", xmx_mb);
+    argv[n++] = arg_xms;
+    argv[n++] = arg_xmx;
 
     argv[n++] = "-XX:+UnlockExperimentalVMOptions";
     argv[n++] = "-XX:+UseG1GC";

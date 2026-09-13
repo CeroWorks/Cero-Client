@@ -10,6 +10,7 @@
 #include "../../include/launch/jvm_args.h"
 #include "../../include/launch/process_step.h"
 #include "../../include/config/config.h"
+#include "../../include/ipc/settings_handlers.h"
 #include "../../include/utils/version_manifest.h"
 #include "../../include/utils/libraries.h"
 #include "../../include/utils/assets.h"
@@ -158,6 +159,7 @@ void launch_minecraft(const char* version,
     lp.token = token;
     lp.vanilla_version = vanilla_version;
     lp.bridge_port = local_bridge_port;
+    lp.ram_mb = get_configured_ram_mb();
 
     const char* argv[96];
     char bridge_port_str[16];

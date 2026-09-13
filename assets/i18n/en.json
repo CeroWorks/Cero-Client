@@ -1,0 +1,88 @@
+{
+  "nav": {
+    "play": "Play",
+    "instances": "Instances",
+    "message": "Chat",
+    "settings": "Settings"
+  },
+  "a11y": {
+    "minimize": "Minimize",
+    "close": "Close"
+  },
+  "closeMenu": {
+    "hide": "Hide launcher",
+    "quit": "Quit launcher"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "settings": {
+    "title": "Settings",
+    "nav": {
+      "game": "Game",
+      "interface": "Interface",
+      "account": "Account",
+      "about": "About"
+    },
+    "performance": { "title": "Performance" },
+    "ram": {
+      "label": "Allocated RAM",
+      "desc": "Maximum memory for Minecraft"
+    },
+    "launch": {
+      "title": "Launch",
+      "hide": {
+        "label": "Close launcher on start",
+        "desc": "Hides the window when Minecraft starts"
+      },
+      "reopen": {
+        "label": "Reopen on exit",
+        "desc": "Shows the launcher again when Minecraft closes"
+      }
+    },
+    "appearance": {
+      "title": "Appearance",
+      "theme": {
+        "label": "Theme",
+        "desc": "Main color of the interface"
+      },
+      "lang": {
+        "label": "Language",
+        "desc": "Interface language"
+      }
+    },
+    "account": {
+      "active": "Active account",
+      "connected": "Connected",
+      "actions": "Actions",
+      "logout": {
+        "label": "Log out",
+        "desc": "Removes the account from this launcher",
+        "button": "Log out"
+      }
+    },
+    "data": {
+      "title": "Data",
+      "reset": {
+        "label": "Reset settings",
+        "desc": "Restores all settings to their defaults",
+        "button": "Reset"
+      }
+    },
+    "about": {
+      "version": "Launcher version",
+      "licenses": "Licenses"
+    },
+    "unsaved": {
+      "title": "Unsaved changes",
+      "body": "You have unsaved changes.",
+      "discard": "Discard changes"
+    },
+    "logoutModal": {
+      "title": "Log out",
+      "confirm": "Log out of this account?",
+      "warning": "You'll need to sign in with Microsoft again to play."
+    }
+  }
+}

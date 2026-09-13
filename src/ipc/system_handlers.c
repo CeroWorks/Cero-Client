@@ -21,7 +21,9 @@
 #include "../../include/ipc/system_handlers.h"
 #include "../../include/ui/ui.h"
 #include "../../include/core/logger.h"
+#include "../../include/utils/sysmem.h"
 #include <string.h>
+#include <stdio.h>
 
 static int check_internet(void) {
 #ifdef _WIN32
@@ -108,4 +110,12 @@ void on_shell_open(const char* id, const char* req, void* arg) {
 void on_check_internet(const char* id, const char* req, void* arg) {
     (void)req;
     ui_return(arg, id, 0, check_internet() ? "true" : "false");
+}
+
+void on_get_system_ram(const char* id, const char* req, void* arg) {
+    (void)req;
+    long total_mb = sysmem_total_mb();
+    char out[32];
+    snprintf(out, sizeof(out), "%ld", total_mb);
+    ui_return(arg, id, 0, out);
 }

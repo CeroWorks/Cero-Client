@@ -1,0 +1,88 @@
+{
+  "nav": {
+    "play": "Jouer",
+    "instances": "Instances",
+    "message": "Message",
+    "settings": "Paramètre"
+  },
+  "a11y": {
+    "minimize": "Réduire",
+    "close": "Fermer"
+  },
+  "closeMenu": {
+    "hide": "Masquer le launcher",
+    "quit": "Fermer le launcher"
+  },
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "nav": {
+      "game": "Jeu",
+      "interface": "Interface",
+      "account": "Compte",
+      "about": "À propos"
+    },
+    "performance": { "title": "Performance" },
+    "ram": {
+      "label": "RAM allouée",
+      "desc": "Mémoire maximale pour Minecraft"
+    },
+    "launch": {
+      "title": "Lancement",
+      "hide": {
+        "label": "Fermer le launcher au lancement",
+        "desc": "Masque la fenêtre quand Minecraft démarre"
+      },
+      "reopen": {
+        "label": "Rouvrir au retour",
+        "desc": "Réaffiche le launcher quand Minecraft se ferme"
+      }
+    },
+    "appearance": {
+      "title": "Apparence",
+      "theme": {
+        "label": "Thème",
+        "desc": "Couleur principale de l'interface"
+      },
+      "lang": {
+        "label": "Langue",
+        "desc": "Langue de l'interface"
+      }
+    },
+    "account": {
+      "active": "Compte actif",
+      "connected": "Connecté",
+      "actions": "Actions",
+      "logout": {
+        "label": "Se déconnecter",
+        "desc": "Supprime le compte de ce launcher",
+        "button": "Déconnexion"
+      }
+    },
+    "data": {
+      "title": "Données",
+      "reset": {
+        "label": "Réinitialiser les paramètres",
+        "desc": "Remet tous les paramètres par défaut",
+        "button": "Réinitialiser"
+      }
+    },
+    "about": {
+      "version": "Version du launcher",
+      "licenses": "Licences"
+    },
+    "unsaved": {
+      "title": "Modifications non sauvegardées",
+      "body": "Il vous reste des modifications non sauvegardées.",
+      "discard": "Ignorer les changements"
+    },
+    "logoutModal": {
+      "title": "Se déconnecter",
+      "confirm": "Se déconnecter de ce compte ?",
+      "warning": "Vous devrez vous reconnecter avec Microsoft pour rejouer."
+    }
+  }
+}

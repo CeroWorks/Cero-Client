@@ -181,7 +181,6 @@ int tray_init(void* main_window, const char* icon_path,
     char local_icon[512] = {0};
     int found = 0;
 
-    
     if (icon_path && *icon_path) {
         const char* ext = strrchr(icon_path, '.');
         if (ext && (strcmp(ext, ".png") == 0 || strcmp(ext, ".svg") == 0)) {
@@ -191,7 +190,6 @@ int tray_init(void* main_window, const char* icon_path,
         }
     }
 
-    
     if (!found) {
         const char* home = getenv("HOME");
         if (home) {
@@ -205,7 +203,6 @@ int tray_init(void* main_window, const char* icon_path,
         }
     }
 
-    
     if (!found) {
         char exe_path[512] = {0};
         ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);

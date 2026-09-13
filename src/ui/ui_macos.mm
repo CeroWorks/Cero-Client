@@ -38,6 +38,7 @@ extern "C" {
     else if ([path hasSuffix:@".png"])  mime = @"image/png";
     else if ([path hasSuffix:@".svg"])  mime = @"image/svg+xml";
     else if ([path hasSuffix:@".ico"])  mime = @"image/x-icon";
+    else if ([path hasSuffix:@".json"]) mime = @"application/json";
 
     NSURLResponse *response = [[NSURLResponse alloc] initWithURL:url
                                                         MIMEType:mime
@@ -127,4 +128,4 @@ void ui_set_icon(void* w, const char* icon_path) {
     }
 }
 
-} // extern "C"
+} 

@@ -38,7 +38,6 @@ typedef struct {
     long  native_size;
 } LibraryEntry;
 
-
 typedef struct {
     char *url;
     char *sha1;
@@ -281,7 +280,6 @@ static inline void library_list_free(LibraryList *l) {
     }
     free(l->items); l->items = NULL; l->count = 0;
 }
-
 
 static inline int manifest_find_version(const char *client_dir, const char *version_id, VersionInfo *out) {
     char path[MAX_PATH_SIZE];

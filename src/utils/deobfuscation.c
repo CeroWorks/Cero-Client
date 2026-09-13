@@ -10,8 +10,6 @@
 #include "../../include/utils/process.h"
 #include "../../include/utils/deobfuscation.h"
 
-
-
 static int version_ge(const char* v, int maj, int min, int patch) {
     int a = 0, b = 0, c = 0;
     sscanf(v, "%d.%d.%d", &a, &b, &c);
@@ -19,8 +17,6 @@ static int version_ge(const char* v, int maj, int min, int patch) {
     if (b != min) return b > min;
     return c >= patch;
 }
-
-
 
 typedef struct {
     const char* version;
@@ -43,7 +39,6 @@ static const char* find_mcp_config_url(const char* version) {
     return NULL;
 }
 
-
 int version_needs_deobfuscation(const char* version) {
     int year = 0, drop = 0;
     if (sscanf(version, "%d.%d", &year, &drop) == 2 && year >= 26) {
@@ -57,8 +52,6 @@ int version_needs_deobfuscation(const char* version) {
     }
     return 1; 
 }
-
-
 
 static int extract_mappings_url(const char* json_path, char* out_url, size_t out_sz) {
     VmJVal* root = vm_load_json(json_path);
@@ -145,8 +138,6 @@ static int deobfuscate_client_jar_mojang(const char* client_dir, const char* ver
     log_msg("succes", "Jar déobfusqué prêt (Mojang): %s\n", output_jar);
     return 1;
 }
-
-
 
 static int extract_mcp_config_zip(const char* zip_path, const char* dest_dir,
                                     const char* java_exe, const char* cero_jar_path) {
@@ -242,8 +233,6 @@ static int deobfuscate_client_jar_mcp(const char* client_dir, const char* versio
     return 1;
 }
 
-
-
 int deobfuscate_client_jar(const char* client_dir, const char* version,
                             const char* input_jar, const char* output_jar,
                             const char* json_path, const char* java_exe,
@@ -261,7 +250,6 @@ int deobfuscate_client_jar(const char* client_dir, const char* version,
                                            java_exe, cero_jar_path);
     }
 
-    
     return deobfuscate_client_jar_mojang(client_dir, version, input_jar, output_jar,
                                           json_path, java_exe, cero_jar_path);
 }

@@ -4,8 +4,29 @@
 #include "../../include/vendor/cJSON.h"
 #include "../../include/ui/ui.h"
 #include "../../include/core/logger.h"
+#include "../../include/utils/sysmem.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+static long clamp_ram_mb(long requested_mb) {
+    const long MIN_RAM_MB = 512;
+    long total_mb = sysmem_total_mb();
+
+    long max_mb;
+    if (total_mb > 0) {
+        long reserve = total_mb / 100 * 15;
+        if (reserve < 1024) reserve = 1024;
+        max_mb = total_mb - reserve;
+        if (max_mb < MIN_RAM_MB) max_mb = MIN_RAM_MB;
+    } else {
+        max_mb = 4096;
+    }
+
+    if (requested_mb < MIN_RAM_MB) return MIN_RAM_MB;
+    if (requested_mb > max_mb) return max_mb;
+    return requested_mb;
+}
 
 void on_get_settings(const char* id, const char* req, void* arg) {
     (void)req;
@@ -75,6 +96,10 @@ void on_save_settings(const char* id, const char* req, void* arg) {
     cJSON* item = NULL;
     cJSON_ArrayForEach(item, json) {
         cJSON* clone = cJSON_Duplicate(item, 1);
+        if (strcmp(item->string, "ram") == 0 && cJSON_IsNumber(clone)) {
+            long clamped = clamp_ram_mb((long)clone->valuedouble);
+            cJSON_SetNumberValue(clone, (double)clamped);
+        }
         cJSON_DeleteItemFromObject(existing, item->string);
         cJSON_AddItemToObject(existing, item->string, clone);
     }
@@ -91,6 +116,39 @@ void on_save_settings(const char* id, const char* req, void* arg) {
     free(out);
 
     ui_return(arg, id, 0, "\"ok\"");
+}
+
+long get_configured_ram_mb(void) {
+    char path[MAX_PATH_SIZE + 32];
+    long ram_mb = 2048;
+
+    if (build_settings_path(path, sizeof(path))) {
+        FILE* f = fopen(path, "r");
+        if (f) {
+            fseek(f, 0, SEEK_END);
+            long size = ftell(f);
+            rewind(f);
+            if (size > 0 && size < 64 * 1024) {
+                char* buf = malloc(size + 1);
+                if (buf) {
+                    size_t n = fread(buf, 1, size, f);
+                    buf[n] = '\0';
+                    cJSON* json = cJSON_Parse(buf);
+                    if (json) {
+                        cJSON* ram = cJSON_GetObjectItem(json, "ram");
+                        if (cJSON_IsNumber(ram) && ram->valuedouble > 0) {
+                            ram_mb = (long)ram->valuedouble;
+                        }
+                        cJSON_Delete(json);
+                    }
+                    free(buf);
+                }
+            }
+            fclose(f);
+        }
+    }
+
+    return clamp_ram_mb(ram_mb);
 }
 
 void on_get_version(const char* id, const char* req, void* arg) {

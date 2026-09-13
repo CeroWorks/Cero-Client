@@ -280,7 +280,6 @@ public:
             CoTaskMemFree(wideUri);
         }
 
-        // "https://cero.local/app/index.html" -> "app/index.html"
         const char* p = path;
         const char* prefix = "https://cero.local/";
         size_t prefixLen = strlen(prefix);
@@ -514,7 +513,7 @@ static void js_log_handler(const char* id, const char* req, void* arg) {
         cJSON* message = cJSON_GetArrayItem(root, 1);
 
         if (cJSON_IsString(level) && cJSON_IsString(message)) {
-            //printf("%s\n", level->valuestring);
+            
             log_msg(level->valuestring, "%s\n", message->valuestring);
         }
     } else {
@@ -562,4 +561,4 @@ void ui_enable_js_console(void* w) {
     );
 }
 
-} // extern "C"
+} 

@@ -1,0 +1,88 @@
+{
+  "nav": {
+    "play": "Spielen",
+    "instances": "Instanzen",
+    "message": "Chat",
+    "settings": "Einstellungen"
+  },
+  "a11y": {
+    "minimize": "Minimieren",
+    "close": "Schließen"
+  },
+  "closeMenu": {
+    "hide": "Launcher ausblenden",
+    "quit": "Launcher schließen"
+  },
+  "common": {
+    "save": "Speichern",
+    "cancel": "Abbrechen"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "nav": {
+      "game": "Spiel",
+      "interface": "Oberfläche",
+      "account": "Konto",
+      "about": "Über"
+    },
+    "performance": { "title": "Leistung" },
+    "ram": {
+      "label": "Zugewiesener RAM",
+      "desc": "Maximaler Speicher für Minecraft"
+    },
+    "launch": {
+      "title": "Start",
+      "hide": {
+        "label": "Launcher beim Start schließen",
+        "desc": "Blendet das Fenster aus, wenn Minecraft startet"
+      },
+      "reopen": {
+        "label": "Beim Beenden erneut öffnen",
+        "desc": "Zeigt den Launcher wieder an, wenn Minecraft geschlossen wird"
+      }
+    },
+    "appearance": {
+      "title": "Erscheinungsbild",
+      "theme": {
+        "label": "Design",
+        "desc": "Hauptfarbe der Oberfläche"
+      },
+      "lang": {
+        "label": "Sprache",
+        "desc": "Sprache der Oberfläche"
+      }
+    },
+    "account": {
+      "active": "Aktives Konto",
+      "connected": "Verbunden",
+      "actions": "Aktionen",
+      "logout": {
+        "label": "Abmelden",
+        "desc": "Entfernt das Konto von diesem Launcher",
+        "button": "Abmelden"
+      }
+    },
+    "data": {
+      "title": "Daten",
+      "reset": {
+        "label": "Einstellungen zurücksetzen",
+        "desc": "Setzt alle Einstellungen auf Standard zurück",
+        "button": "Zurücksetzen"
+      }
+    },
+    "about": {
+      "version": "Launcher-Version",
+      "licenses": "Lizenzen"
+    },
+    "unsaved": {
+      "title": "Nicht gespeicherte Änderungen",
+      "body": "Es gibt nicht gespeicherte Änderungen.",
+      "discard": "Änderungen verwerfen"
+    },
+    "logoutModal": {
+      "title": "Abmelden",
+      "confirm": "Von diesem Konto abmelden?",
+      "warning": "Du musst dich erneut mit Microsoft anmelden, um zu spielen."
+    }
+  }
+}

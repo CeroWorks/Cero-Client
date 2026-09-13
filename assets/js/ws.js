@@ -1,8 +1,13 @@
 (function() {
     const wsUrl = window.Cero.config.wsUrl;
+    const apiBase = window.Cero.config.apiBase;
+
+    const HEALTH_RETRY_DELAY = 30000;
+    const HEALTH_TIMEOUT = 5000;
 
     let ws = null;
     let reconnectTimer = null;
+    let healthTimer = null;
     let reconnectDelay = 1000;
     let lastStatus = 'online';
     let lastHello = null;
@@ -18,6 +23,41 @@
             reconnectTimer = null;
             connectWS();
         }, delay);
+    }
+
+    function scheduleHealthCheck(delay) {
+        if (healthTimer) return;
+        healthTimer = setTimeout(() => {
+            healthTimer = null;
+            checkHealthThenConnect();
+        }, delay);
+    }
+
+    function checkHealthThenConnect() {
+        if (typeof fetch !== 'function' || !apiBase) {
+            connectWS();
+            return;
+        }
+
+        const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+        const timeoutId = controller ? setTimeout(() => controller.abort(), HEALTH_TIMEOUT) : null;
+
+        fetch(apiBase + '/health', controller ? { signal: controller.signal } : {})
+            .then(function(res) {
+                if (timeoutId) clearTimeout(timeoutId);
+                if (res && res.ok) {
+                    log('health check OK, connecting...');
+                    connectWS();
+                } else {
+                    warn('health check failed (status ' + (res ? res.status : '?') + '), retry in 30s');
+                    scheduleHealthCheck(HEALTH_RETRY_DELAY);
+                }
+            })
+            .catch(function() {
+                if (timeoutId) clearTimeout(timeoutId);
+                warn('server unreachable, retry in 30s');
+                scheduleHealthCheck(HEALTH_RETRY_DELAY);
+            });
     }
 
     function connectWS() {
@@ -38,7 +78,7 @@
             p = window.getMcToken();
         } catch (e) {
             err('getMcToken threw:', e && e.message ? e.message : String(e));
-            scheduleReconnect(5000);
+            scheduleHealthCheck(HEALTH_RETRY_DELAY);
             return;
         }
 
@@ -54,7 +94,7 @@
                 ws = new WebSocket(wsUrl + '?token=' + encodeURIComponent(token));
             } catch (e) {
                 err('WebSocket ctor failed:', e && e.message ? e.message : String(e));
-                scheduleReconnect(5000);
+                scheduleHealthCheck(HEALTH_RETRY_DELAY);
                 return;
             }
 
@@ -79,8 +119,7 @@
                 if (ev.code === 4001) {
                     scheduleReconnect(10000);
                 } else {
-                    scheduleReconnect(reconnectDelay);
-                    reconnectDelay = Math.min(reconnectDelay * 2, 30000);
+                    scheduleHealthCheck(HEALTH_RETRY_DELAY);
                 }
             };
             ws.onerror = function(e) {
@@ -114,7 +153,7 @@
     window.ceroWS = { sendStatus: sendStatus, onMessage: onMessage };
 
     function start() {
-        setTimeout(connectWS, 800);
+        setTimeout(checkHealthThenConnect, 800);
     }
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', start);

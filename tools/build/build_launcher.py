@@ -11,17 +11,9 @@ WEBVIEW2_CACHE_DIR = Path("third_party") / "webview2_sdk"
 
 
 def ensure_webview2_sdk():
-    """
-    Sur CI, le SDK WebView2 est téléchargé par le workflow et exposé via les variables
-    d'env WEBVIEW2_INCLUDE/WEBVIEW2_LIB (voir .github/workflows/release.yml). En local,
-    ces variables ne sont jamais définies : on télécharge le même package NuGet une seule
-    fois, mis en cache dans third_party/webview2_sdk/, pour que `python run.py` marche
-    sans setup manuel.
-    """
     include_dir = os.environ.get("WEBVIEW2_INCLUDE", "")
     lib_dir = os.environ.get("WEBVIEW2_LIB", "")
     if include_dir and lib_dir:
-        # Variables déjà définies (ex: CI) : on respecte ce qui est fourni.
         return include_dir, lib_dir
 
     include_dir = str(WEBVIEW2_CACHE_DIR / "build" / "native" / "include")

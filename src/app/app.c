@@ -122,6 +122,7 @@ void launcher_bind_ui(void) {
     ui_bind(w, "close_to_tray",   on_close_to_tray, w);
     ui_bind(w, "kill_game", on_kill_game, w);
     ui_bind(w, "quit_app", on_quit_app, w);
+    ui_bind(w, "get_system_ram", on_get_system_ram, w);
 
     ui_enable_js_console(w);
     ui_lockdown(w);

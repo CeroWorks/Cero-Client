@@ -2,8 +2,6 @@
 #include <string.h>
 #include <stdint.h>
 
-
-
 static const uint8_t SBOX[256] = {
 0x63,0x7c,0x77,0x7b,0xf2,0x6b,0x6f,0xc5,0x30,0x01,0x67,0x2b,0xfe,0xd7,0xab,0x76,
 0xca,0x82,0xc9,0x7d,0xfa,0x59,0x47,0xf0,0xad,0xd4,0xa2,0xaf,0x9c,0xa4,0x72,0xc0,
@@ -101,8 +99,6 @@ static void aes_encrypt_block(const uint8_t in[16], uint8_t out[16],
     memcpy(out, s, 16);
 }
 
-
-
 static void gf_mul(uint8_t Z[16], const uint8_t H[16]) {
     uint8_t V[16];
     uint8_t R = 0xe1;
@@ -115,7 +111,6 @@ static void gf_mul(uint8_t Z[16], const uint8_t H[16]) {
         uint8_t mask = (uint8_t)(-(int8_t)zbit);
         for (int k = 0; k < 16; k++) Zout[k] ^= (uint8_t)(V[k] & mask);
 
-        
         uint8_t lsb = (uint8_t)(V[15] & 1);
         for (int k = 15; k > 0; k--)
             V[k] = (uint8_t)((V[k] >> 1) | ((V[k - 1] & 1) << 7));
@@ -141,8 +136,6 @@ static void ghash_update(uint8_t Y[16], const uint8_t H[16],
         gf_mul(Y, H);
     }
 }
-
-
 
 static void inc32(uint8_t ctr[16]) {
     for (int i = 15; i >= 12; i--) {
@@ -178,16 +171,13 @@ int aes_gcm_decrypt(const uint8_t *key,   size_t key_len,
     uint8_t ks[AES_KS_SIZE];
     key_expansion_256(key, ks);
 
-    
     uint8_t H[16] = {0};
     aes_encrypt_block(H, H, ks);
 
-    
     uint8_t J0[16] = {0};
     memcpy(J0, nonce, 12);
     J0[15] = 1;
 
-    
     uint8_t Y[16] = {0};
     ghash_update(Y, H, aad, aad_len);
     ghash_update(Y, H, ct,  ct_len);
@@ -200,15 +190,12 @@ int aes_gcm_decrypt(const uint8_t *key,   size_t key_len,
     for (int i = 0; i < 16; i++) Y[i] ^= lens[i];
     gf_mul(Y, H);
 
-    
     uint8_t S[16];
     aes_encrypt_block(J0, S, ks);
     for (int i = 0; i < 16; i++) S[i] ^= Y[i];
 
-    
     int auth_fail = ct_memcmp(S, tag, 16);
 
-    
     uint8_t ctr[16];
     memcpy(ctr, J0, 16);
     inc32(ctr);
@@ -225,12 +212,10 @@ int aes_gcm_decrypt(const uint8_t *key,   size_t key_len,
         off += n;
     }
 
-    
     if (auth_fail) {
         secure_wipe(out_plain, ct_len);
     }
 
-    
     secure_wipe(ks,     sizeof(ks));
     secure_wipe(H,      sizeof(H));
     secure_wipe(J0,     sizeof(J0));

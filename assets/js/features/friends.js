@@ -1,7 +1,7 @@
 (function(window) {
     "use strict";
     const Cero = window.Cero = window.Cero || {};
-//const SERVER_URL = 'http://www.arcadiafr.fr:3134';
+
 const SERVER_URL = 'http://localhost:3134';
 const STATUS_ORDER = { ingame: 0, online: 1, offline: 2 };
 
@@ -57,7 +57,7 @@ function renderFriends(friends) {
     const scrollTop = list.scrollTop;
 
     if (!friends || friends.length === 0) {
-        list.innerHTML = '<div class="friends-empty">Aucun ami pour le moment</div>';
+        list.innerHTML = '<div class="friends-empty">' + (window.t ? window.t('friends.empty') : 'Aucun ami pour le moment') + '</div>';
         document.getElementById('friendsOnlineCount').textContent = '0';
         return;
     }
@@ -67,8 +67,12 @@ function renderFriends(friends) {
     const onlineCount = friends.filter(f => f.status !== 'offline').length;
     document.getElementById('friendsOnlineCount').textContent = onlineCount;
 
+    const statusLabel = (s) => window.t
+        ? (s === 'ingame' ? window.t('friends.ingame') : s === 'online' ? window.t('friends.online') : window.t('friends.offline'))
+        : (s === 'ingame' ? 'En jeu' : s === 'online' ? 'En ligne' : 'Hors ligne');
+
     list.innerHTML = friends.map(f => `
-        <div class="friend-item" title="${f.name}${f.status === 'ingame' ? ' • En jeu' : f.status === 'online' ? ' • En ligne' : ' • Hors ligne'}">
+        <div class="friend-item" title="${f.name}${f.status === 'ingame' || f.status === 'online' || f.status === 'offline' ? ' • ' + statusLabel(f.status) : ''}">
             <img class="friend-head" src="https://mc-heads.net/avatar/${encodeURIComponent(f.uuid || f.name)}/28" alt="">
             <span class="friend-name" style="${f.status === 'offline' ? 'opacity:0.4' : ''}">${f.name}</span>
             <button class="friend-remove nodrag" onclick="event.stopPropagation(); openRemoveFriendModal('${f.uuid}')">✕</button>
@@ -86,7 +90,7 @@ function applyFriendStatus(uuid, status) {
     } else {
         fetchFriendsOnce(); return;
     }
-    debouncedRenderFriends(window.friendsCache); // Changé ici
+    debouncedRenderFriends(window.friendsCache); 
 }
 
 let pendingRemoveUuid = null;
@@ -202,7 +206,7 @@ function closeRequestsModal() {
 
 async function loadRequests() {
     const body = document.getElementById('requestsBody');
-    body.innerHTML = '<div class="modal-empty">Chargement...</div>';
+    body.innerHTML = '<div class="modal-empty">' + (window.t ? window.t('friends.loading') : 'Chargement...') + '</div>';
 
     try {
         const token = await window.getMcToken();
@@ -217,7 +221,7 @@ async function loadRequests() {
         const { incoming, outgoing } = data;
 
         if ((!incoming || incoming.length === 0) && (!outgoing || outgoing.length === 0)) {
-            body.innerHTML = '<div class="modal-empty">Aucune demande</div>';
+            body.innerHTML = '<div class="modal-empty">' + (window.t ? window.t('friends.noRequests') : 'Aucune demande') + '</div>';
             document.getElementById('reqBadge').classList.add('hidden');
             return;
         }
@@ -348,7 +352,6 @@ function subscribeFriendsWS() {
 
 window.loadFriends = fetchFriendsOnce; window.fetchFriendsOnce = fetchFriendsOnce; window.subscribeFriendsWS = subscribeFriendsWS; window.openRemoveFriendModal = openRemoveFriendModal; window.acceptRequest = acceptRequest; window.declineRequest = declineRequest;
 window.getFriendsCache = function() { return window.friendsCache; };
-
 
     Cero.modules = Cero.modules || {};
     Cero.modules.openRemoveFriendModal = openRemoveFriendModal; window.openRemoveFriendModal = openRemoveFriendModal;

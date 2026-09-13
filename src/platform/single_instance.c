@@ -27,7 +27,6 @@ void single_instance_release(void) {
     }
 }
 
-
 void single_instance_write_port(int port) {
     (void)port;
 }

@@ -11,21 +11,21 @@
         <nav class="app-tabs nodrag">
             <button class="app-tab active" data-tab="jouer" onclick="switchAppTab('jouer')">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 3l14 9-14 9V3z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Jouer
+                <span data-i18n="nav.play">Jouer</span>
             </button>
             <button class="app-tab" data-tab="instances" onclick="switchAppTab('instances')">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
                 </svg>
-                Instances
+                <span data-i18n="nav.instances">Instances</span>
             </button>
             <button class="app-tab" data-tab="message" onclick="switchAppTab('message')">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Message
+                <span data-i18n="nav.message">Message</span>
             </button>
             <button class="app-tab" data-tab="parametre" onclick="switchAppTab('parametre')">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Paramètre
+                <span data-i18n="nav.settings">Paramètre</span>
             </button>
         </nav>
     </div>
@@ -33,12 +33,12 @@
     <div class="flex items-center gap-2 flex-shrink-0">
         <span id="playerName" class="text-xs font-semibold text-[var(--text-muted)] mr-2">—</span>
         
-        <button class="wc-btn nodrag" onclick="window.minimize_window && window.minimize_window()" aria-label="Réduire">
+        <button class="wc-btn nodrag" onclick="window.minimize_window && window.minimize_window()" aria-label="Réduire" data-i18n-aria="a11y.minimize">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <line x1="5" y1="12" x2="19" y2="12" stroke-linecap="round"/>
             </svg>
         </button>
-        <button class="wc-btn close nodrag" onclick="window.close_to_tray && window.close_to_tray()" oncontextmenu="showCloseMenu(event); return false;" aria-label="Fermer">
+        <button class="wc-btn close nodrag" onclick="window.close_to_tray && window.close_to_tray()" oncontextmenu="showCloseMenu(event); return false;" aria-label="Fermer" data-i18n-aria="a11y.close">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <line x1="6" y1="6" x2="18" y2="18" stroke-linecap="round"/>
                 <line x1="18" y1="6" x2="6" y2="18" stroke-linecap="round"/>
@@ -48,8 +48,8 @@
 </header>
 
 <div id="closeMenu">
-    <button onclick="hideCloseMenu(); window.close_to_tray && window.close_to_tray()">Masquer le launcher</button>
-    <button class="danger" onclick="hideCloseMenu(); window.quit_app && window.quit_app()">Fermer le launcher</button>
+    <button onclick="hideCloseMenu(); window.close_to_tray && window.close_to_tray()" data-i18n="closeMenu.hide">Masquer le launcher</button>
+    <button class="danger" onclick="hideCloseMenu(); window.quit_app && window.quit_app()" data-i18n="closeMenu.quit">Fermer le launcher</button>
 </div>
 
 <script>

@@ -14,7 +14,7 @@ def compute_source_hash(agent_dir):
         for f in filenames:
             if f.endswith((".java", ".kt", ".json", ".toml")):
                 files.append(os.path.join(root, f))
-    for f in sorted(files):  # tri pour un hash déterministe
+    for f in sorted(files):
         with open(f, "rb") as fh:
             hasher.update(fh.read())
     for cfg in ("build.gradle", "settings.gradle", "gradle.properties"):
@@ -25,8 +25,9 @@ def compute_source_hash(agent_dir):
     return hasher.hexdigest()
 
 def copy_jar_to_assets(jar_path, assets_dir):
-    os.makedirs(assets_dir, exist_ok=True)
-    dest = os.path.join(assets_dir, "CeroClient-MC.jar")
+    dest_dir = os.path.join(assets_dir, "agent")
+    os.makedirs(dest_dir, exist_ok=True)
+    dest = os.path.join(dest_dir, "CeroClient-MC.jar")
     shutil.copy2(jar_path, dest)
     return dest
 
@@ -60,17 +61,16 @@ def find_java_home():
     return None
 
 def find_built_jar(agent_dir):
-    """Cherche le JAR final dans les dossiers de sortie standards de Gradle."""
     libs_dir = os.path.join(agent_dir, "build", "libs")
     if os.path.isdir(libs_dir):
         jars = glob.glob(os.path.join(libs_dir, "*.jar"))
         if jars:
             return max(jars, key=os.path.getmtime)
-            
+
     root_jars = glob.glob(os.path.join(agent_dir, "*.jar"))
     if root_jars:
         return max(root_jars, key=os.path.getmtime)
-        
+
     return None
 
 def is_agent_up_to_date(agent_dir, jar_path):
@@ -92,31 +92,31 @@ def save_source_hash(agent_dir):
 
 def run():
     step("Building Minecraft Agent (Java)...")
-    
+
     agent_dir = os.path.abspath("agent")
     assets_dir = os.path.abspath("assets")
 
     if not os.path.isdir(agent_dir):
         fail_("Agent directory not found.")
-        
+
     is_windows = (sys.platform == "win32")
     gradlew_name = "gradlew.bat" if is_windows else "gradlew"
     gradlew_path = os.path.join(agent_dir, gradlew_name)
-    
+
     if not os.path.exists(gradlew_path):
         fail_(f"{gradlew_name} not found in {agent_dir}")
-        
+
     if not is_windows:
         os.chmod(gradlew_path, 0o755)
-    
+
     jar_path = find_built_jar(agent_dir)
     if is_agent_up_to_date(agent_dir, jar_path):
         ok(f"Agent is already up-to-date (JAR: {os.path.basename(jar_path)}). Skipping Gradle build.")
         copy_jar_to_assets(jar_path, assets_dir)
         return
-        
+
     info("Sources have changed, running Gradle build...")
-    
+
     env = os.environ.copy()
     java_home = find_java_home()
     if java_home:
@@ -126,15 +126,15 @@ def run():
         warn_("JAVA_HOME not found. Gradle might fail if not in system PATH.")
 
     result = subprocess.run([gradlew_path, "build", "--no-daemon"], cwd=agent_dir, env=env)
-    
+
     if result.returncode != 0:
         fail_("Agent build failed")
-        
+
     jar_path = find_built_jar(agent_dir)
     if not jar_path:
         warn_("Build succeeded but no JAR was found in build/libs/.")
     else:
         copy_jar_to_assets(jar_path, assets_dir)
         ok("Agent built successfully")
-        
+
     ok("Agent built successfully")

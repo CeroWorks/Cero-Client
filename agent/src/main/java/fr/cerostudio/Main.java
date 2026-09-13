@@ -54,7 +54,7 @@ public class Main {
 
         RemappingClassLoader remapper = new RemappingClassLoader(
                 classpathUrls,
-                Main.class.getClassLoader().getParent(),
+                Main.class.getClassLoader(),
                 mcVersion,
                 identity
         );

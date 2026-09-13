@@ -25,13 +25,11 @@ NODE_MODULES = os.path.join(PROJECT_ROOT, "node_modules")
 NODE_BIN = os.path.join(NODE_MODULES, ".bin")
 
 def _npm_tool(name):
-    """Retourne le chemin d'un exécutable npm local."""
     suffix = ".cmd" if os.name == "nt" else ""
     return os.path.join(NODE_BIN, name + suffix)
 
 
 def _node_env():
-    """Environnement permettant à Node de trouver les modules locaux."""
     env = os.environ.copy()
 
     existing_node_path = env.get("NODE_PATH", "")

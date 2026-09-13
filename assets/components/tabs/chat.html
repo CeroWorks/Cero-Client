@@ -51,7 +51,7 @@
     padding:16px;
     display:flex;
     flex-direction:column;
-    gap:12px; /* Un peu plus d'écart entre les messages */
+    gap:12px; 
 }
 .chat-bubble-row {
     display: flex;
@@ -61,7 +61,7 @@
 }
 .chat-bubble-row.mine {
     align-self: flex-end;
-    flex-direction: row-reverse; /* Avatar à droite pour mes messages */
+    flex-direction: row-reverse; 
 }
 .chat-bubble-row.theirs {
     align-self: flex-start;
@@ -79,11 +79,11 @@
     height: 24px;
     border-radius: 50%;
     flex-shrink: 0;
-    margin-top: 2px; /* Aligne avec le nom */
+    margin-top: 2px; 
     object-fit: cover;
 }
 
-/* Style du nom de l'expéditeur */
+
 .chat-bubble-author {
     font-size: 11px;
     font-weight: 700;
@@ -187,9 +187,9 @@
     border-radius:50%;
     border:2px solid var(--bg-color, #1a1a1a);
 }
-.status-dot.online   { background:#3ba55d; }  /* vert */
-.status-dot.ingame   { background:#5865f2; }  /* bleu/violet, distinct du vert */
-.status-dot.offline  { background:#747f8d; }  /* gris */
+.status-dot.online   { background:#3ba55d; }  
+.status-dot.ingame   { background:#5865f2; }  
+.status-dot.offline  { background:#747f8d; }  
 </style>
 
 <script>

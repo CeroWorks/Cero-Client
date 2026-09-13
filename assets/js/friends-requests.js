@@ -1,4 +1,4 @@
-//const FR_API = 'http://www.arcadiafr.fr:3134';
+
 const FR_API = 'http://localhost:3134';
 let pendingIncoming = [];
 let pendingOutgoing = [];
@@ -36,7 +36,7 @@ async function loadRequests() {
 function renderRequests() {
     const body = document.getElementById('requestsBody');
     if (pendingIncoming.length === 0 && pendingOutgoing.length === 0) {
-        body.innerHTML = '<div class="modal-empty">Aucune demande en attente</div>';
+        body.innerHTML = '<div class="modal-empty">' + (window.t ? window.t('friends.noPendingRequests') : 'Aucune demande en attente') + '</div>';
         return;
     }
     let html = '';

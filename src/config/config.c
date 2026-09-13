@@ -19,10 +19,6 @@
 
 char client_path[MAX_PATH_SIZE] = {0};
 
-
-
-
-
 static void config_path(char* out, size_t sz) {
     snprintf(out, sz, "%s%sconfig.json", client_path, PATH_SEP);
 }
@@ -60,11 +56,6 @@ static int write_file_all(const char* path, const char* data, size_t len) {
     fclose(f);
     return (n == len) ? 0 : -1;
 }
-
-
-
-
-
 
 static int find_json_value(const char* json, const char* key,
                            const char** k_start, const char** k_end,
@@ -123,10 +114,6 @@ static int find_json_value(const char* json, const char* key,
     return 0;
 }
 
-
-
-
-
 void init_config(void) {
     
     if (client_path[0] == '\0') {
@@ -143,7 +130,6 @@ void init_config(void) {
 #endif
     }
 
-    
     char path[MAX_PATH_SIZE];
     config_path(path, sizeof(path));
 
@@ -156,10 +142,6 @@ void init_config(void) {
         }
     }
 }
-
-
-
-
 
 char* config_get(const char* key) {
     char path[MAX_PATH_SIZE];
@@ -278,16 +260,13 @@ int config_delete(const char* key) {
         return 1; 
     }
 
-    
     const char* del_start = ks;
     const char* del_end   = ve;
 
-    
     while (del_end < json + strlen(json) &&
            (*del_end == ' ' || *del_end == '\t' || *del_end == '\n' || *del_end == '\r'))
         del_end++;
 
-    
     if (*del_end == ',') {
         del_end++;
     } else {

@@ -37,10 +37,6 @@ def _download(url, dest):
 
 
 def ensure_webview2_sdk():
-    """
-    Downloads and extracts the WebView2 NuGet package if missing.
-    Returns (include_dir, lib_dir, runtime_dll_path).
-    """
     arch = _arch_tag()
     include_dir = WEBVIEW2_SDK_DIR / "build" / "native" / "include"
     lib_dir = WEBVIEW2_SDK_DIR / "build" / "native" / arch
@@ -93,7 +89,6 @@ def ensure_webview2_sdk():
 
 
 def check_webview2_runtime():
-    """Non-fatal check: is the Evergreen runtime installed on this machine?"""
     if sys.platform != "win32":
         return
     try:
