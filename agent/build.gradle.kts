@@ -26,6 +26,7 @@ dependencies {
     implementation("org.ow2.asm:asm-util:9.7")
 
     implementation("com.google.guava:guava:32.1.3-jre")
+    implementation("com.google.code.gson:gson:2.10.1")
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
@@ -49,6 +50,7 @@ tasks.shadowJar {
     }
 
     relocate("com.google.common", "fr.cerostudio.libs.guava")
+    relocate("com.google.gson", "fr.cerostudio.libs.gson")
     relocate("org.objectweb.asm", "fr.cerostudio.libs.asm")
 
     exclude("META-INF/versions/**")

@@ -127,6 +127,9 @@
 
     <script>
         function switchAppTab(tab) {
+            if (tab === 'message' && window.ceroWS && window.ceroWS.isMaintenance && window.ceroWS.isMaintenance()) {
+                return;
+            }
             const onSettingsTab = document.getElementById('appTab-parametre').style.display !== 'none';
             if (onSettingsTab && window.hasUnsavedSettings && window.hasUnsavedSettings()) {
                 window.confirmLeaveSettings(function() {
@@ -159,6 +162,7 @@
 <script src="../js/ws.js"></script>
 <script src="../js/features/account-skin.js"></script>
 <script src="../js/features/friends.js"></script>
+<script src="../js/features/maintenance.js"></script>
 <script src="../js/features/launch.js"></script>
 <script src="../js/app.js"></script>
 <script src="../js/friends-requests.js"></script>

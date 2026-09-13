@@ -122,27 +122,29 @@ static inline int java_fetch_download_url(int major, char* url_out, size_t size)
     snprintf(tmp_path, sizeof(tmp_path), "java_api_%d.json", major);
 
     download_file(api_url, tmp_path);
-    if (!java_file_exists(tmp_path)) {
-        log_msg("error", "Cannot fetch Adoptium API for Java %d\n", major);
-        return 0;
-    }
 
-    VmJVal* root = vm_load_json(tmp_path);
-    remove(tmp_path);
-    if (!root || root->t != VM_JARR || root->a.count == 0) {
+    int got_link = 0;
+    if (java_file_exists(tmp_path)) {
+        VmJVal* root = vm_load_json(tmp_path);
+        if (root && root->t == VM_JARR && root->a.count > 0) {
+            VmJVal* first = root->a.items[0];
+            VmJVal* binary = vm_get(first, "binary");
+            VmJVal* package = binary ? vm_get(binary, "package") : NULL;
+            const char* link = package ? vm_gets(package, "link") : NULL;
+            if (link) {
+                snprintf(url_out, size, "%s", link);
+                got_link = 1;
+            }
+        }
         if (root) vm_free(root);
-        return 0;
+        remove(tmp_path);
     }
 
-    VmJVal* first = root->a.items[0];
-    VmJVal* binary = vm_get(first, "binary");
-    VmJVal* package = binary ? vm_get(binary, "package") : NULL;
-    const char* link = package ? vm_gets(package, "link") : NULL;
+    if (got_link) return 1;
 
-    if (!link) { vm_free(root); return 0; }
-
-    snprintf(url_out, size, "%s", link);
-    vm_free(root);
+    snprintf(url_out, size,
+        "https://api.adoptium.net/v3/binary/latest/%d/ga/%s/%s/jre/hotspot/normal/eclipse",
+        major, JAVA_OS, JAVA_ARCH);
     return 1;
 }
 

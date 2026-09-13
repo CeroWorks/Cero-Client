@@ -11,7 +11,16 @@
     let reconnectDelay = 1000;
     let lastStatus = 'online';
     let lastHello = null;
+    let maintenanceActive = false;
     const listeners = new Set();
+
+    function setMaintenance(active) {
+        if (maintenanceActive === active) return;
+        maintenanceActive = active;
+        window.Cero.state = window.Cero.state || {};
+        window.Cero.state.maintenance = active;
+        document.dispatchEvent(new CustomEvent('cero:maintenance', { detail: { active: active } }));
+    }
 
     function log(...a)  { try { console.log('[WS]', ...a); } catch(_){} }
     function warn(...a) { try { console.warn('[WS]', ...a); } catch(_){} }
@@ -47,15 +56,18 @@
                 if (timeoutId) clearTimeout(timeoutId);
                 if (res && res.ok) {
                     log('health check OK, connecting...');
+                    setMaintenance(false);
                     connectWS();
                 } else {
                     warn('health check failed (status ' + (res ? res.status : '?') + '), retry in 30s');
+                    setMaintenance(true);
                     scheduleHealthCheck(HEALTH_RETRY_DELAY);
                 }
             })
             .catch(function() {
                 if (timeoutId) clearTimeout(timeoutId);
                 warn('server unreachable, retry in 30s');
+                setMaintenance(true);
                 scheduleHealthCheck(HEALTH_RETRY_DELAY);
             });
     }
@@ -119,6 +131,7 @@
                 if (ev.code === 4001) {
                     scheduleReconnect(10000);
                 } else {
+                    setMaintenance(true);
                     scheduleHealthCheck(HEALTH_RETRY_DELAY);
                 }
             };
@@ -150,7 +163,7 @@
         return function(){ listeners.delete(fn); };
     }
 
-    window.ceroWS = { sendStatus: sendStatus, onMessage: onMessage };
+    window.ceroWS = { sendStatus: sendStatus, onMessage: onMessage, isMaintenance: function() { return maintenanceActive; } };
 
     function start() {
         setTimeout(checkHealthThenConnect, 800);

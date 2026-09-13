@@ -17,7 +17,7 @@ def compute_source_hash(agent_dir):
     for f in sorted(files):
         with open(f, "rb") as fh:
             hasher.update(fh.read())
-    for cfg in ("build.gradle", "settings.gradle", "gradle.properties"):
+    for cfg in ("build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts", "gradle.properties"):
         path = os.path.join(agent_dir, cfg)
         if os.path.exists(path):
             with open(path, "rb") as fh:

@@ -9,11 +9,11 @@ from logger import step, ok, info, fail_
 WEBVIEW2_NUGET_URL = "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2"
 WEBVIEW2_CACHE_DIR = Path("third_party") / "webview2_sdk"
 
-
 def ensure_webview2_sdk():
     include_dir = os.environ.get("WEBVIEW2_INCLUDE", "")
     lib_dir = os.environ.get("WEBVIEW2_LIB", "")
     if include_dir and lib_dir:
+
         return include_dir, lib_dir
 
     include_dir = str(WEBVIEW2_CACHE_DIR / "build" / "native" / "include")
@@ -42,7 +42,6 @@ def ensure_webview2_sdk():
 
     ok(f"SDK WebView2 prêt ({lib_dir})")
     return include_dir, lib_dir
-
 
 def run():
     step(f"Building local launcher ({'windows' if sys.platform == "win32" else 'linux/bsd'})")
@@ -91,8 +90,8 @@ def run():
         TAB = "\t"
         makefile_content = f"""CC       = gcc
 CXX      = g++
-CFLAGS   = -O2 -std=c11 {inc_flags} {win_defs} -Wno-unused-function
-CXXFLAGS = -O2 -std=c++17 {inc_flags} {win_defs} -Wno-unused-function
+CFLAGS   = -O2 -std=c11 -MMD -MP {inc_flags} {win_defs} -Wno-unused-function
+CXXFLAGS = -O2 -std=c++17 -MMD -MP {inc_flags} {win_defs} -Wno-unused-function
 LDFLAGS  = {curl_static_deps} {win_libs}
 
 TARGET   = CeroClient.exe
@@ -108,6 +107,8 @@ obj/%.o: src/%.c
 obj/%.o: src/%.cpp
 {TAB}@mkdir -p $(dir $@)
 {TAB}$(CXX) $(CXXFLAGS) -c $< -o $@
+
+-include $(OBJS:.o=.d)
 """
     elif sys.platform == "darwin":
         brew_prefix = "/opt/homebrew" if os.path.exists("/opt/homebrew") else "/usr/local"
@@ -120,8 +121,8 @@ obj/%.o: src/%.cpp
         TAB = "\t"
         makefile_content = f"""CC       = clang
 CXX      = clang++
-CFLAGS   = -O2 -std=c11 {inc_flags} -Wno-unused-function
-CXXFLAGS = -O2 -std=c++17 {inc_flags} -Wno-unused-function
+CFLAGS   = -O2 -std=c11 -MMD -MP {inc_flags} -Wno-unused-function
+CXXFLAGS = -O2 -std=c++17 -MMD -MP {inc_flags} -Wno-unused-function
 LDFLAGS  = {lib_flags} {frameworks}
 
 TARGET   = CeroClient
@@ -141,6 +142,8 @@ obj/%.o: src/%.cpp
 obj/%.o: src/%.mm
 {TAB}@mkdir -p $(dir $@)
 {TAB}$(CXX) $(CXXFLAGS) -x objective-c++ -c $< -o $@
+
+-include $(OBJS:.o=.d)
 """
     else:
         pkg_config_path_export = ""
@@ -176,8 +179,8 @@ obj/%.o: src/%.mm
         TAB = "\t"
         makefile_content = f"""CC       = cc
 CXX      = c++
-CFLAGS   = -O2 -Iinclude -Ithird_party/webview/core/include {tray_define} {tray_cflags} $(shell {pkg_config_path_export}pkg-config --cflags libcurl)
-CXXFLAGS = -O2 -std=c++17 -Iinclude -Ithird_party/webview/core/include $(shell {pkg_config_path_export}pkg-config --cflags gtk+-3.0 {webkit_pkg} libcurl)
+CFLAGS   = -O2 -MMD -MP -Iinclude -Ithird_party/webview/core/include {tray_define} {tray_cflags} $(shell {pkg_config_path_export}pkg-config --cflags libcurl)
+CXXFLAGS = -O2 -std=c++17 -MMD -MP -Iinclude -Ithird_party/webview/core/include $(shell {pkg_config_path_export}pkg-config --cflags gtk+-3.0 {webkit_pkg} libcurl)
 LDFLAGS  = $(shell {pkg_config_path_export}pkg-config --libs gtk+-3.0 {webkit_pkg} libcurl) {tray_ldflags}
 
 TARGET   = CeroClient
@@ -193,6 +196,8 @@ obj/%.o: src/%.c
 obj/%.o: src/%.cpp
 {TAB}@mkdir -p $(dir $@)
 {TAB}$(CXX) $(CXXFLAGS) -c $< -o $@
+
+-include $(OBJS:.o=.d)
 """
 
     with open("Makefile", "w") as f:

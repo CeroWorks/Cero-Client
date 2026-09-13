@@ -78,6 +78,7 @@ void log_msg(const char* type, const char* format, ...) {
     else if (type_equals(type, "warn")) printf(YELLOW "[WARN] " RESET);
     else if (type_equals(type, "succes")) printf(GREEN "[SUCCES] " RESET);
     else if (type_equals(type, "info")) printf(BLUE "[INFO] " RESET);
+    else if (type_equals(type, "debug")) printf(MAGENTA "[DEBUG] " RESET);
     else if (type_equals(type, "uncaught")) printf(BRIGHT_YELLOW "[UNCAUGHT] " RESET);
     else if (type_equals(type, "promise")) printf(BRIGHT_MAGENTA "[PROMISE] " RESET);
     else printf(BRIGHT_BLUE "[LOG] " RESET);

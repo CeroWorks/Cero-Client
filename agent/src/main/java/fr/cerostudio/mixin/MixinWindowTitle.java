@@ -13,7 +13,7 @@ public final class MixinWindowTitle {
     public static class Legacy {
 
         @ModifyArg(
-            method = "func_71384_a|func_175609_am",
+            method = { "func_71384_a", "func_175609_am" },
             at = @At(
                 value = "INVOKE",
                 target = "Lorg/lwjgl/opengl/Display;setTitle(Ljava/lang/String;)V"

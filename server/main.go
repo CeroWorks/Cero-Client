@@ -19,6 +19,9 @@ func main() {
 
 	hub = newHub()
 
+	stop := make(chan os.Signal, 1)
+    signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
@@ -66,6 +69,8 @@ func main() {
 			log.Fatalf("listen: %v", err)
 		}
 	}()
+
+	go runShell(stop)
 
 	gracefulShutdown(srv)
 }

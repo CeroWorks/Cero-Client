@@ -9,6 +9,6 @@ public final class CeroClientMod implements ClientModInitializer {
     public void onInitializeClient() {
         String version = CeroApi.minecraftVersion();
         String pseudo = CeroApi.player() != null ? CeroApi.player().getUsername() : "Player";
-        CeroApi.window().setTitle("CeroClient " + version + " " + pseudo);
+        CeroApi.window().setTitle("CeroClient - " + version + " - " + pseudo);
     }
 }

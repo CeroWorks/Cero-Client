@@ -49,6 +49,7 @@
                 filters: { all: "Tout", release: "Release", snapshot: "Snap", beta: "Beta", alpha: "Alpha" }
             },
             instances: { soon: "Instances à venir..." },
+            maintenance: { title: "Maintenance", desc: "Serveur indisponible, nouvelle tentative automatique...", chatDisabled: "Le chat est indisponible pendant la maintenance" },
             friends: {
                 empty: "Aucun ami pour le moment",
                 ingame: "En jeu",
@@ -104,6 +105,7 @@
                 filters: { all: "All", release: "Release", snapshot: "Snap", beta: "Beta", alpha: "Alpha" }
             },
             instances: { soon: "Instances coming soon..." },
+            maintenance: { title: "Maintenance", desc: "Server unreachable, retrying automatically...", chatDisabled: "Chat is unavailable during maintenance" },
             friends: {
                 empty: "No friends yet",
                 ingame: "In game",
@@ -159,6 +161,7 @@
                 filters: { all: "Alle", release: "Release", snapshot: "Snap", beta: "Beta", alpha: "Alpha" }
             },
             instances: { soon: "Instanzen folgen in Kürze..." },
+            maintenance: { title: "Wartung", desc: "Server nicht erreichbar, automatischer erneuter Versuch...", chatDisabled: "Der Chat ist während der Wartung nicht verfügbar" },
             friends: {
                 empty: "Noch keine Freunde",
                 ingame: "Im Spiel",
@@ -214,6 +217,7 @@
                 filters: { all: "Todo", release: "Release", snapshot: "Snap", beta: "Beta", alpha: "Alpha" }
             },
             instances: { soon: "Instancias próximamente..." },
+            maintenance: { title: "Mantenimiento", desc: "Servidor no disponible, reintentando automáticamente...", chatDisabled: "El chat no está disponible durante el mantenimiento" },
             friends: {
                 empty: "Todavía no tienes amigos",
                 ingame: "En juego",

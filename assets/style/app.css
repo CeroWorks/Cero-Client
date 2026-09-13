@@ -283,6 +283,37 @@ input, textarea, [contenteditable="true"] {
     overflow: hidden;
 }
 
+.friends-card.maintenance {
+    filter: grayscale(1);
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+.friends-maintenance {
+    padding: 24px 16px;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.friends-maintenance svg {
+    margin: 0 auto 10px;
+    display: block;
+    opacity: 0.6;
+}
+
+.friends-maintenance p.title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--text-main);
+    margin-bottom: 4px;
+}
+
+.friends-maintenance p.sub {
+    font-size: 11px;
+}
+
 .friends-header {
     padding: 14px 16px 10px;
     border-bottom: 1px solid var(--border-color);
