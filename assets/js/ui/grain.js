@@ -1,9 +1,11 @@
 (function () {
     'use strict';
 
+    return;
+
     var TILE = 128;
     var FRAMES = 8;
-    var FPS = 24;
+    var FPS = 1;
 
     function start() {
         var canvas = document.getElementById('grainCanvas');

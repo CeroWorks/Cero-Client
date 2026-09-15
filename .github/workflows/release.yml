@@ -268,6 +268,7 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path stage | Out-Null
           Copy-Item bin\windows\client\CeroClient.exe stage\
+          Copy-Item bin\windows\client\*.dll stage\ -ErrorAction SilentlyContinue
           Copy-Item bin\windows\bootstrapper\ceroclient-bootstrapper.exe stage\
           Copy-Item bin\assets\assets.dat stage\
 
@@ -390,6 +391,14 @@ jobs:
 
             find "$dir" -maxdepth 1 -type f -iname "cero-installer*" -exec cp {} "pkg/$target/installer/" \;
             (cd "pkg/$target/installer" && zip -r "../../../release/CeroClient-installer-${target}.zip" .)
+
+            if [ "$target" = "windows-x86_64" ]; then
+              mkdir -p "pkg/$target/dlls"
+              find "$dir" -maxdepth 1 -type f -iname "*.dll" -exec cp {} "pkg/$target/dlls/" \;
+              if [ -n "$(ls -A "pkg/$target/dlls" 2>/dev/null)" ]; then
+                (cd "pkg/$target/dlls" && zip -r "../../../release/CeroClient_windows_dll.zip" .)
+              fi
+            fi
           done
           ls -la release/
 

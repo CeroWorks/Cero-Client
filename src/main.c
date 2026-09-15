@@ -1,9 +1,17 @@
 #include "../include/platform/platform_defines.h"
 
+#ifdef _WIN32
+  #include <winsock2.h>
+  #include <ws2tcpip.h>
+#endif
+
 #include "../include/app/app.h"
 #include "../include/app/app_state.h"
 #include "../include/platform/single_instance.h"
 #include "../include/ui/ui.h"
+#include "../include/net/ca_bundle.h"
+
+#include <curl/curl.h>
 #include <locale.h>
 
 #ifdef _WIN32
@@ -32,15 +40,24 @@ int main(int argc, char** argv) {
 #endif
     setlocale(LC_NUMERIC, "C");
 
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+    ca_bundle_ensure();
+
     LauncherOptions opts;
-    if (!launcher_parse_args(argc, argv, &opts))
+    if (!launcher_parse_args(argc, argv, &opts)) {
+        curl_global_cleanup();
         return 1;
+    }
 
-    if (single_instance_check())
+    if (single_instance_check()) {
+        curl_global_cleanup();
         return 0;
+    }
 
-    if (!launcher_init(&opts))
+    if (!launcher_init(&opts)) {
+        curl_global_cleanup();
         return 1;
+    }
 
     if (!launcher_create_ui())
         goto cleanup;
@@ -51,6 +68,7 @@ int main(int argc, char** argv) {
 
 cleanup:
     launcher_shutdown();
+    curl_global_cleanup();
     return 0;
 }
 #endif

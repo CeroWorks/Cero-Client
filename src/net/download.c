@@ -13,6 +13,7 @@
 #include "../../include/net/download.h"
 #include "../../include/core/logger.h"
 #include "../../include/utils/file_utils.h"
+#include "../../include/net/ca_bundle.h"
 
 size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
     return fwrite(ptr, size, nmemb, stream);
@@ -28,6 +29,8 @@ int download_file(const char* url, const char* path) {
 
     curl = curl_easy_init();
     if (curl) {
+        const char* ca = ca_bundle_path();
+        if (ca) curl_easy_setopt(curl, CURLOPT_CAINFO, ca);
         fp = fopen(path, "wb");
         if (fp) {
             curl_easy_setopt(curl, CURLOPT_URL, url);
@@ -71,6 +74,8 @@ static int start_job(CURLM* multi, dl_slot_t* slot, const download_job_t* job) {
     if (!fp) { log_msg("erreur", "fopen failed: %s\n", job->path); return 0; }
 
     CURL* e = curl_easy_init();
+    const char* ca = ca_bundle_path();
+    if (ca) curl_easy_setopt(e, CURLOPT_CAINFO, ca);
     curl_easy_setopt(e, CURLOPT_URL, job->url);
     curl_easy_setopt(e, CURLOPT_WRITEFUNCTION, write_cb);
     curl_easy_setopt(e, CURLOPT_WRITEDATA, fp);

@@ -3,6 +3,7 @@ import sys
 import subprocess
 import urllib.request
 import zipfile
+import shutil
 from pathlib import Path
 from logger import step, ok, info, fail_
 
@@ -82,8 +83,10 @@ def run():
 
         if os.path.exists("/usr/lib/libngtcp2_crypto_libressl.a") or os.path.exists("C:/msys64/mingw64/lib/libngtcp2_crypto_libressl.a"):
             curl_static_deps = "-Wl,--start-group -l:libcurl.a -l:libssh2.a -l:libnghttp2.a -l:libnghttp3.a -l:libngtcp2.a -l:libngtcp2_crypto_libressl.a -l:libssl.a -l:libcrypto.a -l:libz.a -l:libzstd.a -l:libbrotlidec.a -l:libbrotlicommon.a -l:libpsl.a -Wl,--end-group"
+            curl_linked_statically = True
         else:
             curl_static_deps = "-lcurl -lssl -lcrypto -lssh2 -lnghttp2 -lnghttp3 -lz -lzstd -lbrotlidec -lbrotlicommon -lpsl -lws2_32 -lwldap32 -lcrypt32 -lnormaliz -lsecur32 -liphlpapi"
+            curl_linked_statically = False
 
         win_libs = f"{lib_flags} -lws2_32 -lwldap32 -lcrypt32 -lnormaliz -lsecur32 -liphlpapi -l:WebView2Loader.dll.lib -lole32 -lshlwapi -lversion -ladvapi32 -luser32 -lshell32 -lgdi32 -static-libgcc -static-libstdc++ -ldwmapi -lwininet -lbcrypt -Wl,--defsym=fstat64=_fstat64 -s -Wl,-subsystem,windows"
 
@@ -219,3 +222,47 @@ obj/%.o: src/%.cpp
 
     if os.path.exists("Makefile"):
         os.remove("Makefile")
+
+    if sys.platform == "win32":
+        bundle_windows_dlls(webview2_lib, curl_linked_statically)
+
+
+def bundle_windows_dlls(webview2_lib, curl_linked_statically):
+    step("Bundling required DLLs next to CeroClient.exe...")
+
+    dest_dir = Path(".")
+    copied = []
+
+    webview2_dll = os.path.join(webview2_lib, "WebView2Loader.dll")
+    if os.path.exists(webview2_dll):
+        shutil.copy2(webview2_dll, dest_dir / "WebView2Loader.dll")
+        copied.append("WebView2Loader.dll")
+    else:
+        fail_(f"WebView2Loader.dll introuvable dans {webview2_lib}")
+
+    if not curl_linked_statically:
+        mingw_bin_candidates = [
+            "C:/msys64/mingw64/bin",
+            "/mingw64/bin",
+        ]
+        mingw_bin = next((p for p in mingw_bin_candidates if os.path.isdir(p)), None)
+
+        if not mingw_bin:
+            info("libcurl est lié dynamiquement mais le dossier bin MSYS2/mingw64 est introuvable - "
+                 "les DLLs runtime (libcurl, libssl, ...) ne seront pas embarquées.")
+        else:
+            runtime_dlls = [
+                "libcurl-4.dll", "libssl-3-x64.dll", "libcrypto-3-x64.dll",
+                "libssh2-1.dll", "libnghttp2-14.dll", "libnghttp3-9.dll",
+                "libngtcp2-16.dll", "libngtcp2_crypto_libressl-0.dll",
+                "zlib1.dll", "libzstd-1.dll", "libbrotlidec.dll", "libbrotlicommon.dll",
+                "libpsl-5.dll", "libidn2-0.dll", "libintl-8.dll", "libiconv-2.dll",
+                "libunistring-5.dll","libngtcp2_crypto_ossl-0.dll", "libwinpthread-1.dll", "libzstd.dll",
+            ]
+            for name in runtime_dlls:
+                src = os.path.join(mingw_bin, name)
+                if os.path.exists(src):
+                    shutil.copy2(src, dest_dir / name)
+                    copied.append(name)
+
+    ok(f"{len(copied)} DLL(s) copiée(s) à côté de CeroClient.exe: {', '.join(copied)}")

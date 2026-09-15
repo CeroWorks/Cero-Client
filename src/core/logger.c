@@ -8,6 +8,7 @@
   #include <stdint.h>
 #endif
 #include <ctype.h>
+#include <time.h>
 
 #define RESET "\033[0m"
 
@@ -29,7 +30,10 @@
 #define BRIGHT_CYAN "\033[96m"
 #define BRIGHT_WHITE "\033[97m"
 
+#define LOG_FILE "latest.log"
+
 static unsigned long long start_time = 0;
+static FILE* log_file = NULL;
 
 static unsigned long long now_ms(void) {
 #ifdef _WIN32
@@ -42,6 +46,13 @@ static unsigned long long now_ms(void) {
 #endif
 }
 
+void close_logger(void) {
+    if (log_file) {
+        fclose(log_file);
+        log_file = NULL;
+    }
+}
+
 void init_logger() {
     start_time = now_ms();
 #ifdef _WIN32
@@ -51,6 +62,19 @@ void init_logger() {
     if (GetConsoleMode(hOut, &dwMode))
         SetConsoleMode(hOut, dwMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
 #endif
+
+    log_file = fopen(LOG_FILE, "w");
+    if (log_file) {
+        time_t raw = time(NULL);
+        struct tm* t = localtime(&raw);
+        if (t) {
+            char buf[64];
+            strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", t);
+            fprintf(log_file, "=== Log started at %s ===\n", buf);
+        }
+        fflush(log_file);
+        atexit(close_logger);
+    }
 }
 
 static int type_equals(const char* a, const char* b) {
@@ -72,16 +96,18 @@ void log_msg(const char* type, const char* format, ...) {
 
     double elapsed = (double)(now_ms() - start_time) / 1000.0;
 
-    printf("[%6.3fs] ", elapsed);
+    const char* color = BRIGHT_BLUE;
+    const char* label = "[LOG] ";
 
-    if      (type_equals(type, "error")) printf(RED "[ERROR] " RESET);
-    else if (type_equals(type, "warn")) printf(YELLOW "[WARN] " RESET);
-    else if (type_equals(type, "succes")) printf(GREEN "[SUCCES] " RESET);
-    else if (type_equals(type, "info")) printf(BLUE "[INFO] " RESET);
-    else if (type_equals(type, "debug")) printf(MAGENTA "[DEBUG] " RESET);
-    else if (type_equals(type, "uncaught")) printf(BRIGHT_YELLOW "[UNCAUGHT] " RESET);
-    else if (type_equals(type, "promise")) printf(BRIGHT_MAGENTA "[PROMISE] " RESET);
-    else printf(BRIGHT_BLUE "[LOG] " RESET);
+    if      (type_equals(type, "error"))    { color = RED;             label = "[ERROR] "; }
+    else if (type_equals(type, "warn"))     { color = YELLOW;          label = "[WARN] "; }
+    else if (type_equals(type, "succes"))   { color = GREEN;           label = "[SUCCES] "; }
+    else if (type_equals(type, "info"))     { color = BLUE;            label = "[INFO] "; }
+    else if (type_equals(type, "uncaught")) { color = BRIGHT_YELLOW;   label = "[UNCAUGHT] "; }
+    else if (type_equals(type, "promise"))  { color = BRIGHT_MAGENTA;  label = "[PROMISE] "; }
+
+    printf("[%6.3fs] ", elapsed);
+    printf("%s%s" RESET, color, label);
 
     va_list args;
     va_start(args, format);
@@ -89,4 +115,14 @@ void log_msg(const char* type, const char* format, ...) {
     va_end(args);
 
     fflush(stdout);
+
+    if (log_file) {
+        fprintf(log_file, "[%6.3fs] %s", elapsed, label);
+
+        va_start(args, format);
+        vfprintf(log_file, format, args);
+        va_end(args);
+
+        fflush(log_file);
+    }
 }

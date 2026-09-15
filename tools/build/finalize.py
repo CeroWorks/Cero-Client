@@ -5,7 +5,7 @@ from logger import step, ok, fail_
 
 def run():
     step("Finalizing build...")
-    
+
     if sys.platform == "win32":
         binary_name = "CeroClient.exe"
         dest_dir = "bin/windows/client"
@@ -18,15 +18,27 @@ def run():
     else:
         binary_name = "CeroClient"
         dest_dir = "bin/linux/client"
-        
+
     if not os.path.exists(binary_name):
         fail_(f"{binary_name} binary not found after build!")
-        
+
     dest_path = os.path.join(dest_dir, binary_name)
-    
+
     os.makedirs(dest_dir, exist_ok=True)
     if os.path.exists(dest_path):
         os.remove(dest_path)
-        
+
     shutil.move(binary_name, dest_path)
     ok(f"Launcher installed in {dest_path}")
+
+    if sys.platform == "win32":
+        dlls_moved = []
+        for f in os.listdir("."):
+            if f.lower().endswith(".dll"):
+                dll_dest = os.path.join(dest_dir, f)
+                if os.path.exists(dll_dest):
+                    os.remove(dll_dest)
+                shutil.move(f, dll_dest)
+                dlls_moved.append(f)
+        if dlls_moved:
+            ok(f"{len(dlls_moved)} DLL(s) déplacée(s) vers {dest_dir}: {', '.join(dlls_moved)}")

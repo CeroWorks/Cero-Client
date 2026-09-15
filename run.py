@@ -14,6 +14,8 @@ import package_assets
 import finalize
 import build_agent
 
+subprocess.run(["where", "libcurl-4.dll"])
+
 def binary_path():
     if sys.platform == "win32":
         return os.path.join("bin", "windows", "client", "CeroClient.exe")
