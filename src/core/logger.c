@@ -9,6 +9,7 @@
 #endif
 #include <ctype.h>
 #include <time.h>
+#include <stdlib.h>
 
 #define RESET "\033[0m"
 
