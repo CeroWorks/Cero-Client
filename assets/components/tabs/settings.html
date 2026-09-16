@@ -348,6 +348,7 @@
     let pendingSection = null;
     let dirty = false;
     let savedAccentColor = null;
+    let pendingAccentColor = null;
     let pendingLeaveCallback = null;
 
     function markDirty() { dirty = true; }
@@ -468,8 +469,12 @@ window.discardUnsavedChanges = function() {
     window.setTheme = function(color, btn, persist) {
         document.querySelectorAll('.theme-dot').forEach(d => d.classList.remove('active'));
         if (btn) btn.classList.add('active');
-        document.documentElement.style.setProperty('--accent-color', color);
-        if (persist !== false) {
+
+        if (persist === false) {
+            pendingAccentColor = null;
+            document.documentElement.style.setProperty('--accent-color', color);
+        } else {
+            pendingAccentColor = color;
             markDirty();
         }
     };
@@ -553,10 +558,16 @@ window.confirmLogout = function() {
 
     window.saveSettingsInterface = function() {
         const lang = document.getElementById('langSelect').value;
-        const accent = document.documentElement.style.getPropertyValue('--accent-color') || savedAccentColor;
+        const accent = pendingAccentColor
+            || document.documentElement.style.getPropertyValue('--accent-color')
+            || savedAccentColor;
+
+        document.documentElement.style.setProperty('--accent-color', accent);
+
         if (window.save_settings) window.save_settings({ lang: lang, accentColor: accent });
         if (window.Cero && window.Cero.i18n) window.Cero.i18n.setLanguage(lang, false);
         savedAccentColor = accent;
+        pendingAccentColor = null;
         dirty = false;
     };
 

@@ -1,3 +1,45 @@
+.logo-wrap {
+    position: relative;
+    flex-shrink: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.logo-tint {
+    position: absolute;
+    inset: 0;
+    background-color: var(--accent-color, #8b5cf6);
+    -webkit-mask-image: url("img/logo-tint-mask.png");
+    mask-image: url("img/logo-tint-mask.png");
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    transition: background-color 0.2s ease;
+}
+
+.logo-shade {
+    position: absolute;
+    inset: 0;
+    background-image: url("img/logo-shade.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    mix-blend-mode: multiply;
+    pointer-events: none;
+}
+
+.logo-highlight {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
 .wc-btn {
     width: 32px;
     height: 32px;
