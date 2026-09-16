@@ -272,3 +272,32 @@ func (h *Hub) readPump(c *wsConn, uuid string, profile *Profile) {
 		}
 	}
 }
+
+func (h *Hub) Kick(uuid string) int {
+    h.mu.Lock()
+    set := h.clients[uuid]
+    conns := make([]*wsConn, 0, len(set))
+    for c := range set {
+        conns = append(conns, c)
+    }
+    h.mu.Unlock()
+    for _, c := range conns {
+        _ = c.conn.WriteControl(websocket.CloseMessage,
+            websocket.FormatCloseMessage(4003, "kicked by administrator"), time.Now().Add(writeWait))
+        _ = c.conn.Close()
+    }
+    return len(conns)
+}
+
+func (h *Hub) Snapshot() map[string]int {
+    h.mu.Lock()
+    defer h.mu.Unlock()
+    out := make(map[string]int, len(h.clients))
+    for uuid, set := range h.clients {
+        out[uuid] = len(set)
+    }
+    return out
+}
+
+func (h *Hub) IsOnline(uuid string) bool { return h.isOnline(uuid) }
+func (h *Hub) TotalOnline() int         { return h.totalOnline() }

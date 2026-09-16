@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 	"time"
 )
@@ -20,7 +19,8 @@ func main() {
 	hub = newHub()
 
 	stop := make(chan os.Signal, 1)
-    signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+	defer signal.Stop(stop)
 
 	mux := http.NewServeMux()
 
@@ -65,35 +65,35 @@ func main() {
 
 	go func() {
 		log.Printf("CeroClient server on http://localhost:%s", port)
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+
+		if err := srv.ListenAndServe(); err != nil &&
+			err != http.ErrServerClosed {
 			log.Fatalf("listen: %v", err)
 		}
 	}()
+	
+	ctx, cancel := signal.NotifyContext(
+		context.Background(),
+		syscall.SIGINT,
+		syscall.SIGTERM,
+	)
+	defer cancel()
 
-	go runShell(stop)
+	go runShell(ctx, cancel)
 
-	gracefulShutdown(srv)
-}
-
-func gracefulShutdown(srv *http.Server) {
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
-	<-stop
+	<-ctx.Done()
 
 	log.Println("shutdown signal received, draining connections...")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
-	defer cancel()
+	shutdownCtx, shutdownCancel := context.WithTimeout(
+		context.Background(),
+		25*time.Second,
+	)
+	defer shutdownCancel()
 
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		if err := srv.Shutdown(ctx); err != nil {
-			log.Printf("shutdown error: %v", err)
-		}
-	}()
-	wg.Wait()
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Printf("shutdown error: %v", err)
+	}
 
 	log.Println("shutdown complete")
 }
