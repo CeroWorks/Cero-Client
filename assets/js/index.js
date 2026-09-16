@@ -1,6 +1,18 @@
 const statusText = document.getElementById('statusText');
 window.setLoadingStatus = (txt) => { statusText.textContent = txt; };
 
+async function applyAccentColor() {
+    try {
+        if (window.get_settings) {
+            const s = await window.get_settings();
+            if (s && s.accentColor) {
+                document.documentElement.style.setProperty('--accent-color', s.accentColor);
+            }
+        }
+    } catch (e) { }
+}
+applyAccentColor();
+
 async function boot() {
     try {
         window.setLoadingStatus("Vérification de la connexion");
