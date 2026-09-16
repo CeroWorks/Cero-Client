@@ -27,6 +27,12 @@
 #include <string.h>
 #include <time.h>
 
+#ifdef _WIN32
+  #include <windows.h>
+#else
+  #include <pthread.h>
+#endif
+
 int launcher_parse_args(int argc, char** argv, LauncherOptions* opts) {
     opts->assets_path = "assets.dat";
     for (int i = 1; i < argc; i++) {
@@ -70,12 +76,6 @@ int launcher_init(const LauncherOptions* opts) {
     log_msg("info", "Starting CeroClient ...\n");
 
     g_start_timestamp = (int64_t)time(NULL);
-    if (discord_rpc_init("1376179097113333881") == 0) {
-        log_msg("info", "Discord RPC connected\n");
-        rpc_set_launching();
-    } else {
-        log_msg("warn", "Discord not running or RPC failed\n");
-    }
 
     return 1;
 }
@@ -128,8 +128,39 @@ void launcher_bind_ui(void) {
     ui_lockdown(w);
 }
 
+static void discord_rpc_start(void) {
+    if (discord_rpc_init("1376179097113333881") == 0) {
+        log_msg("info", "Discord RPC connected\n");
+        rpc_set_launching();
+    } else {
+        log_msg("warn", "Discord not running or RPC failed\n");
+    }
+}
+
+#ifdef _WIN32
+static DWORD WINAPI discord_rpc_thread(LPVOID arg) {
+    (void)arg;
+    discord_rpc_start();
+    return 0;
+}
+#else
+static void* discord_rpc_thread(void* arg) {
+    (void)arg;
+    discord_rpc_start();
+    return NULL;
+}
+#endif
+
 void launcher_start_services(void) {
     window_platform_init(g_ui, NULL);
+    
+#ifdef _WIN32
+    CreateThread(NULL, 0, discord_rpc_thread, NULL, 0, NULL);
+#else
+    pthread_t tid;
+    pthread_create(&tid, NULL, discord_rpc_thread, NULL);
+    pthread_detach(tid);
+#endif
 }
 
 void launcher_shutdown(void) {

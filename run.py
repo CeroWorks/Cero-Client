@@ -10,11 +10,10 @@ from logger import step, ok, info, warn_, fail_, C_BOLD, C_GREEN, C_RESET
 import check_deps
 import prepare_dirs
 import build_launcher
+import build_tailwind
 import package_assets
 import finalize
 import build_agent
-
-subprocess.run(["where", "libcurl-4.dll"])
 
 def binary_path():
     if sys.platform == "win32":
@@ -60,6 +59,7 @@ def main():
         prepare_dirs.run()
         build_launcher.run()
         build_agent.run()
+        build_tailwind.run()
         package_assets.run()
         finalize.run()
 

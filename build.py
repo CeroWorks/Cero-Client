@@ -10,6 +10,7 @@ import check_deps
 import prepare_dirs
 import build_agent
 import build_bootstrapper
+import build_tailwind
 import package_assets
 #from dependencies import ensure_webview2_sdk
 import build_launcher
@@ -25,6 +26,7 @@ def main():
         prepare_dirs.run()
         build_agent.run()
         build_bootstrapper.run()
+        build_tailwind.run()
         package_assets.run()
         build_launcher.run()
         finalize.run()

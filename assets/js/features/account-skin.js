@@ -150,6 +150,11 @@ function initSkinViewer(skinUrl) {
                 const s = getSize();
                 skinViewer.setSize(s.w, s.h);
             }).observe(parent);
+
+            skinViewer.renderPaused = document.hidden;
+            document.addEventListener('visibilitychange', () => {
+                if (skinViewer) skinViewer.renderPaused = document.hidden;
+            });
         } catch(e) { console.error('SkinViewer:', e); }
     });
 }

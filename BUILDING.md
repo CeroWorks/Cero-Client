@@ -48,14 +48,29 @@ Java 8.
 
 **Node.js / npm (optional but recommended)**: asset packaging
 (`package.json`: `terser`, `tailwindcss`, `clean-css-cli`,
-`html-minifier-terser`) minifies and obfuscates the JS/CSS. If `npm install`
-hasn't been run, the build **does not fail** — it prints a warning and
-simply skips minification.
+`html-minifier-terser`) minifies and obfuscates the JS/CSS, and
+`tools/build/build_tailwind.py` compiles `assets/tailwind.config.js` into
+`assets/style/tailwind.css` (replacing the old `cdn.tailwindcss.com`
+`<script>` tag, which was blocking page load on every launch). If Node.js
+isn't installed, **neither step fails the build** — both print a warning
+and fall back to what's already committed in the repo (unminified JS, and
+a baseline `tailwind.css` that may be missing recently-added utility
+classes). Install Node.js if you're touching `assets/` at all:
+
+- **Linux**: `sudo apt-get install -y nodejs npm` (or use
+  [nvm](https://github.com/nvm-sh/nvm) for a specific version)
+- **macOS**: `brew install node`
+- **Windows (MSYS2 MINGW64 shell)**: install Node.js **natively** from
+  [nodejs.org](https://nodejs.org/) (not via `pacman`, same reasoning as
+  Python below — `pacman -S nodejs` puts it under the MSYS layer, which
+  can behave inconsistently with `npx`/`npm` invoked via `subprocess.run`
+  from Python). After installing, restart the MINGW64 shell so `PATH`
+  picks it up, and confirm with `node -v` / `npm -v`.
 
 ```sh
 git clone https://github.com/CeroWorks/Cero-Client.git
 cd Cero-Client
-npm install   # optional, for asset minification/obfuscation
+npm install   # optional, for JS minification/obfuscation + Tailwind CSS build
 ```
 
 ---
@@ -290,6 +305,16 @@ client/installer pipeline described above.
 - **`terser not found in local node_modules`**: run `npm install` at the
   repo root; without it, the packaged JS is neither minified nor obfuscated
   (the build still works).
+- **`✗ npx introuvable` during "Building Tailwind CSS..."** *(confirmed in
+  real testing, Windows/MSYS2)* — Node.js isn't installed, or was installed
+  via `pacman` instead of natively. This step now **warns and continues**
+  rather than failing the whole build, falling back to the `tailwind.css`
+  already committed in the repo — but that fallback can be stale if you've
+  added new utility classes since it was last generated. Install Node.js
+  natively (see Prerequisites above) and re-run `npm install`, then rebuild
+  to regenerate it. On Windows, `where node` / `where npm` in the MINGW64
+  shell should resolve to a native Windows install, not something under
+  `/mingw64` or MSYS.
 - **`JAVA_HOME not found`**: Gradle will fall back to the system `PATH`
   Java; set `JAVA_HOME` to a JDK 17 install if the agent build fails.
 - **Windows: `[WinError 2] The system cannot find the file specified`
