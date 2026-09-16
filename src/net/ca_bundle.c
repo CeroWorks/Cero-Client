@@ -63,20 +63,20 @@ int ca_bundle_ensure(void) {
         long size = ftell(f);
         fclose(f);
         if (size > 100000) {
-            log_msg("info", "cacert.pem present (%ld octets)\n", size);
+            log_msg("info", "cacert.pem found (%ld octets)\n", size);
             return 1;
         }
-        log_msg("warn", "cacert.pem invalide, retelechargement...\n");
+        log_msg("warn", "cacert.pem invalid, redownloading....\n");
     }
 
-    log_msg("info", "Telechargement de cacert.pem...\n");
+    log_msg("info", "Downloading cacert.pem...\n");
 
     char tmp[1088];
     snprintf(tmp, sizeof(tmp), "%s.tmp", g_ca_path);
 
     FILE* out = fopen(tmp, "wb");
     if (!out) {
-        log_msg("erreur", "Impossible d'ecrire %s\n", tmp);
+        log_msg("erreur", "Cannot write %s\n", tmp);
         return 0;
     }
 
@@ -102,7 +102,7 @@ int ca_bundle_ensure(void) {
     fclose(out);
 
     if (res != CURLE_OK || code != 200) {
-        log_msg("erreur", "Echec telechargement cacert.pem (curl=%d http=%ld): %s\n",
+        log_msg("erreur", "Failed while downloading cacert.pem (curl=%d http=%ld): %s\n",
                 res, code, curl_easy_strerror(res));
         remove(tmp);
         return 0;
@@ -110,11 +110,11 @@ int ca_bundle_ensure(void) {
 
     remove(g_ca_path);
     if (rename(tmp, g_ca_path) != 0) {
-        log_msg("erreur", "Impossible de renommer %s\n", tmp);
+        log_msg("erreur", "Cannot rename %s\n", tmp);
         remove(tmp);
         return 0;
     }
 
-    log_msg("succes", "cacert.pem installe: %s\n", g_ca_path);
+    log_msg("succes", "cacert.pem install: %s\n", g_ca_path);
     return 1;
 }
