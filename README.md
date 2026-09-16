@@ -1,4 +1,4 @@
-# CeroClient
+<h1 align="center"><img src="./assets/logo.png" width="30" alt="CeroClient icon"> <strong>Cero</strong>Client</h1>
 
 <p align="center">
   CeroClient is a free and open Minecraft client designed to be highly optimized and lightweight.
@@ -6,6 +6,21 @@
 
 <p align="center">
   <img src="./screenshots/launcher1.png" width="800" alt="CeroClient launcher">
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/C-A8B9CC?style=flat&logo=c&logoColor=black" alt="C">
+  <img src="https://img.shields.io/badge/C++-00599C?style=flat&logo=cplusplus&logoColor=white" alt="C++">
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black" alt="JavaScript">
+  <img src="https://img.shields.io/badge/HTML5-E34F26?style=flat&logo=html5&logoColor=white" alt="HTML">
+  <img src="https://img.shields.io/badge/CSS3-1572B6?style=flat&logo=css3&logoColor=white" alt="CSS">
+  <img src="https://img.shields.io/badge/Go-00ADD8?style=flat&logo=go&logoColor=white" alt="Go">
+  <img src="https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/Java-ED8B00?style=flat&logo=openjdk&logoColor=white" alt="Java">
+  <img src="https://img.shields.io/badge/Rust-000000?style=flat&logo=rust&logoColor=white" alt="Rust">
+  <img src="https://img.shields.io/badge/Nim-FFE953?style=flat&logo=nim&logoColor=black" alt="Nim">
+  <img src="https://img.shields.io/badge/Objective--C++-438EFF?style=flat" alt="Objective-C++">
+  <img src="https://img.shields.io/badge/Lua-2C2D72?style=flat&logo=lua&logoColor=white" alt="Lua">
 </p>
 
 ---
@@ -39,13 +54,13 @@
     - [x] Add Friend
     - [x] Remove Friend
 - [ ] Add Android Support
-- [ ] Multi Language Support
+- [x] Multi Language Support
 
 ---
 
 ## Installation
 
-All downloads and instructions for CeroClient are available on our [Website](https://cerostudio.fr/ceroclient) (not already updated) or from releases.
+All downloads and instructions for CeroClient are available on our [Website](https://cerostudio.fr/ceroclient) (not updated yet) or from releases.
 
 *Note: macOS is largely untested — we currently have no macOS testers.*
 
@@ -57,6 +72,7 @@ All downloads and instructions for CeroClient are available on our [Website](htt
 | `agent/` | Java | Mixin service, MCP/ProGuard→Tiny remapper, custom classloader |
 | `bootstrapper/` | Rust | Installation and auto-update |
 | `server/` | Go | Authentication, friends, WebSocket messaging |
+| `server/commands/lua/` | Lua | Extensible server commands (kick, status, friends...) |
 | `assets/` | HTML/CSS/JS | User interface |
 | `tools/`, `build.py` | Python | Build pipeline, asset packaging, JS obfuscation |
 | `installer/` | Nim / NSIS | Platform installers (Unix-like/WinNT) |
