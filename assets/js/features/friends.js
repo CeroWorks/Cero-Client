@@ -2,7 +2,7 @@
     "use strict";
     const Cero = window.Cero = window.Cero || {};
 
-const SERVER_URL = 'http://localhost:3134';
+const SERVER_URL = (window.Cero && window.Cero.config && window.Cero.config.apiBase) || 'http://localhost:3134';
 const STATUS_ORDER = { ingame: 0, online: 1, offline: 2 };
 
 let friendsFetchId = 0;
@@ -18,14 +18,27 @@ function normalizeFriends(arr) {
     }));
 }
 
+const FRIENDS_FETCH_TIMEOUT = 5000;
+
 async function fetchFriendsOnce() {
     const currentFetchId = ++friendsFetchId;
     try {
         const token = await window.getMcToken();
         if (!token) throw new Error('No token');
-        const res = await fetch(`${SERVER_URL}/api/friends`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+
+        const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+        const timeoutId = controller ? setTimeout(() => controller.abort(), FRIENDS_FETCH_TIMEOUT) : null;
+
+        let res;
+        try {
+            res = await fetch(`${SERVER_URL}/api/friends`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+                signal: controller ? controller.signal : undefined
+            });
+        } finally {
+            if (timeoutId) clearTimeout(timeoutId);
+        }
+
         if (!res.ok) {
             const errData = await res.json().catch(() => ({}));
             throw new Error(errData.error || `HTTP ${res.status}`);
@@ -40,7 +53,9 @@ async function fetchFriendsOnce() {
     } catch (e) {
         if (currentFetchId === friendsFetchId) {
             (Cero.logErr || console.error)('fetchFriendsOnce', e);
-            debouncedRenderFriends([]);
+            if (!(window.ceroWS && window.ceroWS.isMaintenance && window.ceroWS.isMaintenance())) {
+                debouncedRenderFriends([]);
+            }
         }
     }
 }
@@ -51,6 +66,8 @@ function debouncedRenderFriends(friends) {
 }
 
 function renderFriends(friends) {
+    if (window.ceroWS && window.ceroWS.isMaintenance && window.ceroWS.isMaintenance()) return;
+
     const list = document.getElementById('friendsList');
     if (!list) return;
 

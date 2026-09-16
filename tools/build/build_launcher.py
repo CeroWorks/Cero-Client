@@ -44,8 +44,15 @@ def ensure_webview2_sdk():
     ok(f"SDK WebView2 prêt ({lib_dir})")
     return include_dir, lib_dir
 
+def _platform_label():
+    if sys.platform == "win32":
+        return "windows"
+    if sys.platform == "darwin":
+        return "macos"
+    return "linux/bsd"
+
 def run():
-    step(f"Building local launcher ({'windows' if sys.platform == "win32" else 'linux/bsd'})")
+    step(f"Building local launcher ({_platform_label()})")
 
     env = os.environ.copy()
 

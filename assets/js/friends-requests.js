@@ -1,5 +1,4 @@
-
-const FR_API = 'http://localhost:3134';
+const FR_API = (window.Cero && window.Cero.config && window.Cero.config.apiBase) || 'http://localhost:3134';
 let pendingIncoming = [];
 let pendingOutgoing = [];
 
