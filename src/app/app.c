@@ -16,6 +16,8 @@
 #include "../../include/ipc/window_handlers.h"
 #include "../../include/ui/tray.h"
 #include "../../include/ipc/game_handlers.h"
+#include "../../include/ipc/instance_handlers.h"
+#include "../../include/instances/instance.h"
 #include "../../include/ipc/auth_handlers.h"
 #include "../../include/ipc/settings_handlers.h"
 #include "../../include/ipc/system_handlers.h"
@@ -48,6 +50,7 @@ int launcher_init(const LauncherOptions* opts) {
     single_instance_write_port(local_bridge_port);
 
     init_config();
+    instances_init();
 
 #ifndef _WIN32
     if (client_path[0] == '\0' || strcmp(client_path, "") == 0) {
@@ -123,6 +126,19 @@ void launcher_bind_ui(void) {
     ui_bind(w, "kill_game", on_kill_game, w);
     ui_bind(w, "quit_app", on_quit_app, w);
     ui_bind(w, "get_system_ram", on_get_system_ram, w);
+
+    /* Instance system */
+    ui_bind(w, "list_instances", on_list_instances, w);
+    ui_bind(w, "create_instance", on_create_instance, w);
+    ui_bind(w, "delete_instance", on_delete_instance, w);
+    ui_bind(w, "rename_instance", on_rename_instance, w);
+    ui_bind(w, "set_instance_ram", on_set_instance_ram, w);
+    ui_bind(w, "launch_instance", on_launch_instance, w);
+    ui_bind(w, "get_mc_versions", on_get_mc_versions, w);
+    ui_bind(w, "get_forge_versions", on_get_forge_versions, w);
+    ui_bind(w, "get_fabric_versions", on_get_fabric_versions, w);
+    ui_bind(w, "get_neoforge_versions", on_get_neoforge_versions, w);
+    ui_bind(w, "get_quilt_versions", on_get_quilt_versions, w);
 
     ui_enable_js_console(w);
     ui_lockdown(w);

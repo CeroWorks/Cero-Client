@@ -29,6 +29,14 @@ typedef struct {
     const char* vanilla_version;
     int         bridge_port;
     long        ram_mb;
+
+    /* Extra loader-specific arguments (Forge's "--tweakClass ..." on
+     * legacy, or its "arguments.jvm"/"arguments.game" additions on
+     * modern versions). NULL/0 for vanilla and Fabric. */
+    const char* const* extra_jvm_args;
+    int                extra_jvm_count;
+    const char* const* extra_game_args;
+    int                extra_game_count;
 } LaunchParams;
 
 int build_launch_argv(const LaunchParams* p, const char** argv, int max_argv,

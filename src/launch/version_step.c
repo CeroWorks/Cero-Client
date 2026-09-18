@@ -4,6 +4,7 @@
 #include "../../include/utils/file_utils.h"
 #include "../../include/net/download.h"
 #include "../../include/crypto/sha1.h"
+#include "../../include/config/config.h"
 #include "../../include/core/logger.h"
 #include <stdio.h>
 
@@ -15,8 +16,11 @@ int resolve_version_json(const LaunchCtx* ctx, const char* client_dir,
     ensure_directory_exists(client_dir);
     download_manifest();
 
+    /* version_manifest.json (Mojang's public version list) is always
+     * downloaded to the global client_path, not per instance — only the
+     * resolved version's own json/jar get written under client_dir. */
     VersionInfo vi;
-    if (!manifest_find_version(client_dir, vanilla_version, &vi)) {
+    if (!manifest_find_version(client_path, vanilla_version, &vi)) {
         launch_report(ctx, "Erreur : version introuvable !", -1);
         log_msg("error", "Version %s not found\n", vanilla_version);
         return 0;

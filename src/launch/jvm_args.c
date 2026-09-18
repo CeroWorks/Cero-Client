@@ -107,6 +107,8 @@ int build_launch_argv(const LaunchParams* p, const char** argv, int max_argv,
     argv[n++] = "-Dminecraft.launcher.version=1.0";
     argv[n++] = arg_client_brand;
 
+    for (int i = 0; i < p->extra_jvm_count; i++) argv[n++] = p->extra_jvm_args[i];
+
     argv[n++] = "-cp";
     argv[n++] = p->classpath;
 
@@ -134,6 +136,8 @@ int build_launch_argv(const LaunchParams* p, const char** argv, int max_argv,
     argv[n++] = "--userType";    argv[n++] = "msa";
     argv[n++] = "--versionType"; argv[n++] = "release";
     argv[n++] = "--ceroMcVersion"; argv[n++] = p->vanilla_version;
+
+    for (int i = 0; i < p->extra_game_count; i++) argv[n++] = p->extra_game_args[i];
 
     argv[n++] = "--ceroPort";
     argv[n++] = bridge_port_buf;

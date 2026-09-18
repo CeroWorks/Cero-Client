@@ -15,10 +15,17 @@ typedef struct {
 
 int parse_maven_gav(const char* name, CpLib* out);
 
+/* GAV -> relative jar path, handling an optional classifier
+ * (group:artifact:version:classifier) and an optional @ext override. */
+int gav_to_relpath(const char* gav, char* out, size_t outsz);
+
 void cp_add(CpLib* arr, int* count, int cap, const CpLib* lib);
 
 void collect_fabric_libs(const char* client_dir, VmJVal* fabric_json,
                          CpLib* arr, int* count, int cap);
+
+void collect_forge_libs(const char* client_dir, VmJVal* forge_json,
+                        CpLib* arr, int* count, int cap);
 
 void collect_vanilla_libs(const char* client_dir, VmJVal* version_json,
                           CpLib* arr, int* count, int cap);

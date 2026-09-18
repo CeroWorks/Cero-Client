@@ -29,6 +29,33 @@ int parse_maven_gav(const char* name, CpLib* out) {
     return 1;
 }
 
+int gav_to_relpath(const char* gav, char* out, size_t outsz) {
+    CpLib c; memset(&c, 0, sizeof(c));
+    if (!parse_maven_gav(gav, &c)) return 0;
+
+    char version[128]; snprintf(version, sizeof(version), "%s", c.version);
+    char ext[16] = "jar";
+    char* at = strchr(version, '@');
+    if (at) { snprintf(ext, sizeof(ext), "%s", at + 1); *at = '\0'; }
+
+    char classifier[128] = "";
+    char* colon = strchr(version, ':');
+    if (colon) { snprintf(classifier, sizeof(classifier), "%s", colon + 1); *colon = '\0'; }
+
+    char group_path[256];
+    snprintf(group_path, sizeof(group_path), "%s", c.group);
+    for (char* q = group_path; *q; q++) if (*q == '.') *q = '/';
+
+    if (classifier[0]) {
+        snprintf(out, outsz, "%s/%s/%s/%s-%s-%s.%s",
+                 group_path, c.artifact, version, c.artifact, version, classifier, ext);
+    } else {
+        snprintf(out, outsz, "%s/%s/%s/%s-%s.%s",
+                 group_path, c.artifact, version, c.artifact, version, ext);
+    }
+    return 1;
+}
+
 void cp_add(CpLib* arr, int* count, int cap, const CpLib* lib) {
     for (int i = 0; i < *count; i++) {
         if (strcmp(arr[i].group, lib->group) == 0 &&
@@ -77,18 +104,62 @@ void collect_fabric_libs(const char* client_dir, VmJVal* fabric_json,
         CpLib c; memset(&c, 0, sizeof(c));
         if (!parse_maven_gav(name, &c)) continue;
 
-        char group_path[256];
-        snprintf(group_path, sizeof(group_path), "%s", c.group);
-        for (char* q = group_path; *q; q++) if (*q == '.') *q = '/';
-
         char relpath[512];
-        snprintf(relpath, sizeof(relpath), "%s/%s/%s/%s-%s.jar",
-                 group_path, c.artifact, c.version, c.artifact, c.version);
+        if (!gav_to_relpath(name, relpath, sizeof(relpath))) continue;
 
         snprintf(c.path, sizeof(c.path), "%s/libraries/%s", client_dir, relpath);
 
         const char* sep = (base[strlen(base) - 1] == '/') ? "" : "/";
         snprintf(c.url, sizeof(c.url), "%s%s%s", base, sep, relpath);
+        c.needs_download = 1;
+
+        cp_add(arr, count, cap, &c);
+    }
+}
+
+/* Same idea as collect_fabric_libs, but for Forge version jsons:
+ * - default maven base is Mojang's own library mirror (most legacy Forge
+ *   library entries with no explicit "url" are actually vanilla-side
+ *   libraries, not Forge's own maven — using Fabric's maven as a default
+ *   there would 404).
+ * - entries can carry a "clientreq": false marker (server-only lib).
+ * - names can include a classifier (":universal", ":client", ...), which
+ *   gav_to_relpath() already accounts for. */
+void collect_forge_libs(const char* client_dir, VmJVal* forge_json,
+                        CpLib* arr, int* count, int cap) {
+    VmJVal* libs = vm_get(forge_json, "libraries");
+    if (!libs || libs->t != VM_JARR) return;
+
+    for (int i = 0; i < libs->a.count; i++) {
+        VmJVal* lib = libs->a.items[i];
+        const char* name = vm_gets(lib, "name");
+        if (!name) continue;
+
+        VmJVal* clientreq = vm_get(lib, "clientreq");
+        if (clientreq && clientreq->t == VM_JBOOL && !clientreq->b) continue;
+
+        CpLib c; memset(&c, 0, sizeof(c));
+        if (!parse_maven_gav(name, &c)) continue;
+
+        char relpath[512];
+        if (!gav_to_relpath(name, relpath, sizeof(relpath))) continue;
+        snprintf(c.path, sizeof(c.path), "%s/libraries/%s", client_dir, relpath);
+
+        /* Modern (1.13+) Forge jsons use the standard downloads.artifact
+         * schema, just like vanilla. */
+        VmJVal* downloads = vm_get(lib, "downloads");
+        VmJVal* artifact  = downloads ? vm_get(downloads, "artifact") : NULL;
+        const char* explicit_url = artifact ? vm_gets(artifact, "url") : NULL;
+
+        const char* base = explicit_url ? NULL : vm_gets(lib, "url");
+        if (!explicit_url && !base) base = "https://libraries.minecraft.net/";
+
+        if (explicit_url && explicit_url[0]) {
+            snprintf(c.url, sizeof(c.url), "%s", explicit_url);
+        } else {
+            const char* sep = (base[strlen(base) - 1] == '/') ? "" : "/";
+            snprintf(c.url, sizeof(c.url), "%s%s%s", base, sep, relpath);
+        }
         c.needs_download = 1;
 
         cp_add(arr, count, cap, &c);

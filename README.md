@@ -5,6 +5,13 @@
 </p>
 
 <p align="center">
+  <img src="https://img.shields.io/github/stars/CeroWorks/Cero-Client?style=flat" alt="Stars">
+  <img src="https://img.shields.io/github/license/CeroWorks/Cero-Client?style=flat" alt="License">
+  <img src="https://img.shields.io/badge/Minecraft-1.7.10--1.21.11-green" alt="Versions">
+  <img src="https://img.shields.io/github/v/release/CeroWorks/Cero-Client?style=flat" alt="Release">
+</p>
+
+<p align="center">
   <img src="./screenshots/launcher1.png" width="800" alt="CeroClient launcher">
 </p>
 

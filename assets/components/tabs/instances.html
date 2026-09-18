@@ -1,5 +1,62 @@
             <div id="appTab-instances" class="app-tab-panel flex-1 flex flex-col gap-4 overflow-hidden" style="display:none">
-                <div class="card rounded-2xl flex-1 flex items-center justify-center fade-up">
-                    <p class="text-sm text-[var(--text-muted)]" data-i18n="instances.soon">Instances à venir...</p>
+                <div class="card rounded-2xl p-5 flex flex-col gap-4 fade-up">
+                    <div>
+                        <h2 class="text-sm font-semibold">Test du système d'instances (C)</h2>
+                        <p class="text-xs text-[var(--text-muted)] mt-1">
+                            Crée puis lance directement une instance jetable pour chaque loader,
+                            pour valider le pipeline C sans passer par un vrai écran de création.
+                        </p>
+                    </div>
+
+                    <div class="flex flex-wrap gap-3">
+                        <button class="btn-primary" style="font-size:12px" onclick="testInstanceLaunch('fabric','1.18.2','')">
+                            Tester Fabric 1.18.2
+                        </button>
+                        <button class="btn-primary" style="font-size:12px" onclick="testInstanceLaunch('forge','1.20.1','')">
+                            Tester Forge 1.20.1
+                        </button>
+                        <button class="btn-primary" style="font-size:12px" onclick="testInstanceLaunch('quilt','1.18.2','')">
+                            Tester Quilt 1.18.2
+                        </button>
+                    </div>
+
+                    <div id="instanceTestLog" class="text-xs font-mono rounded-xl p-3 flex-1 overflow-auto"
+                         style="background:var(--bg-secondary,rgba(0,0,0,0.2)); white-space:pre-wrap; min-height:160px;">
+Prêt. Choisis un loader ci-dessus.
+                    </div>
                 </div>
             </div>
+
+<script>
+(function() {
+    function logLine(msg) {
+        const el = document.getElementById('instanceTestLog');
+        if (!el) return;
+        const time = new Date().toLocaleTimeString();
+        el.textContent += `\n[${time}] ${msg}`;
+        el.scrollTop = el.scrollHeight;
+    }
+
+    window.testInstanceLaunch = async function(loader, mcVersion, loaderVersion) {
+        const name = `Test ${loader} ${mcVersion}`;
+        logLine(`Création de l'instance "${name}"...`);
+        try {
+            const instanceId = await window.create_instance(name, mcVersion, loader, loaderVersion || '');
+            logLine(`Instance créée -> id ${instanceId}`);
+
+            if (window.Cero && window.Cero.modules && window.Cero.modules.overlayShow) {
+                window.Cero.modules.overlayShow(`${mcVersion} (${loader})`);
+            }
+
+            logLine(`Lancement de l'instance ${instanceId}...`);
+            await window.launch_instance(instanceId);
+            logLine(`launch_instance() renvoyé sans erreur immédiate (le vrai suivi passe par la barre de progression).`);
+        } catch (e) {
+            logLine(`Erreur: ${e && e.message ? e.message : e}`);
+            if (window.Cero && window.Cero.modules && window.Cero.modules.overlayError) {
+                window.Cero.modules.overlayError(e && e.message ? e.message : String(e));
+            }
+        }
+    };
+})();
+</script>
